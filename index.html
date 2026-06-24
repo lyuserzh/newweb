@@ -1,97 +1,487 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>初三作业看板</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui;background:#f0f4fa;padding:20px}
-.container{max-width:1200px;margin:0 auto}
-.header{background:#fff;padding:20px 24px;border-radius:20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
-.controls{background:#fff;padding:16px 24px;border-radius:16px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.controls input,.controls button{padding:8px 16px;border-radius:30px;border:1px solid #dce7f3}
-.controls button{background:#2a5c8a;color:#fff;border:none;cursor:pointer}
-.controls button:hover{background:#1d4a73}
-.stats{background:#fff;padding:14px 24px;border-radius:40px;margin-bottom:24px;display:flex;flex-wrap:wrap;gap:20px}
-.stats-item{display:flex;gap:8px;align-items:center}
-.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
-.homework-card{background:#fff;border-radius:24px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
-.card-header{display:flex;justify-content:space-between;border-bottom:1px solid #ecf3fa;padding-bottom:12px;margin-bottom:12px}
-.subject{font-size:1.2rem;font-weight:600}
-.teacher{color:#1f4d78;background:#eaf1fb;padding:4px 12px;border-radius:30px;font-size:.8rem}
-.group-row{background:#f8faff;border-radius:14px;padding:12px 16px;margin-bottom:10px;border-left:4px solid #6f9bc7}
-.group-label{display:flex;justify-content:space-between;font-weight:600;color:#1e3f62}
-.group-content{font-size:.94rem;line-height:1.6;color:#1e334b;white-space:pre-wrap}
-.footer{margin-top:12px;padding-top:12px;border-top:1px dashed #d6e2f0;font-size:.8rem;color:#3f6a8f;display:flex;justify-content:space-between}
-.empty{text-align:center;padding:60px 20px;color:#6f8aa8}
-.badge{background:#eef5fd;padding:2px 12px;border-radius:40px;font-size:.7rem;color:#2d5f88;display:inline-block;margin-right:6px}
-.badge.green{background:#e5f3e9;color:#146b3a}
-</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>初三作业看板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f4f8;
+            padding: 12px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .header {
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a2e4a;
+            letter-spacing: 0.5px;
+        }
+        .header .date-display {
+            font-size: 14px;
+            color: #4a6a8a;
+            background: #eef3f8;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+        .controls {
+            background: #ffffff;
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .controls label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2a4a6a;
+        }
+        .controls input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #d0dce8;
+            border-radius: 24px;
+            font-size: 14px;
+            background: #f8fafc;
+            color: #1a2e4a;
+            outline: none;
+            flex: 1;
+            min-width: 140px;
+        }
+        .controls input[type="date"]:focus {
+            border-color: #4a8ab5;
+        }
+        .controls button {
+            padding: 8px 24px;
+            background: #2a5c8a;
+            color: #ffffff;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .controls button:hover {
+            background: #1d4a73;
+        }
+        .controls button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .controls .status-msg {
+            font-size: 13px;
+            color: #3a6a8a;
+            margin-left: auto;
+            word-break: break-all;
+        }
+        .controls .status-msg.error {
+            color: #c0392b;
+        }
+        .controls .status-msg.success {
+            color: #1a7a4a;
+        }
+        .stats {
+            background: #ffffff;
+            padding: 12px 18px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .stats-item {
+            font-size: 13px;
+            color: #2a4a6a;
+        }
+        .stats-item strong {
+            font-weight: 600;
+            color: #1a2e4a;
+            font-size: 15px;
+        }
+        .stats-item .num {
+            background: #e4edf5;
+            padding: 0 10px;
+            border-radius: 30px;
+            font-weight: 600;
+            color: #1a4a6a;
+            font-size: 13px;
+            line-height: 1.8;
+            display: inline-block;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media (min-width: 600px) {
+            body { padding: 20px; }
+            .card-grid { grid-template-columns: 1fr 1fr; }
+            .header h1 { font-size: 24px; }
+        }
+        @media (min-width: 960px) {
+            body { padding: 30px; }
+            .card-grid { grid-template-columns: 1fr 1fr 1fr; }
+        }
+        .homework-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 18px 18px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #eaf0f5;
+            transition: box-shadow 0.2s;
+        }
+        .homework-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eaf0f5;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .subject {
+            font-size: 18px;
+            font-weight: 600;
+            color: #132c47;
+        }
+        .teacher {
+            font-size: 13px;
+            color: #1f4d78;
+            background: #eaf1fb;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+        .info-badge {
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .badge {
+            background: #eef5fd;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: #2d5f88;
+            border: 1px solid #dce7f5;
+            display: inline-block;
+        }
+        .badge.green {
+            background: #e5f3e9;
+            border-color: #b9daca;
+            color: #146b3a;
+        }
+        .group-section {
+            margin: 6px 0 2px;
+        }
+        .group-row {
+            background: #f8faff;
+            border-radius: 14px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            border-left: 4px solid #6f9bc7;
+        }
+        .group-row.group-b {
+            border-left-color: #4f8bbf;
+            background: #f4faff;
+        }
+        .group-row.group-c {
+            border-left-color: #3f7eb3;
+            background: #f2f9fe;
+        }
+        .group-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #1e3f62;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .group-label .time-note {
+            font-weight: 400;
+            color: #4a7a9a;
+            font-size: 12px;
+        }
+        .group-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1e334b;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .card-footer {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #d6e2f0;
+            font-size: 12px;
+            color: #3f6a8f;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6f8aa8;
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px dashed #c0d4e8;
+        }
+        .loading-text {
+            text-align: center;
+            padding: 30px;
+            color: #3f7aa6;
+        }
+        @media (max-width: 400px) {
+            .header h1 { font-size: 17px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .controls .status-msg { margin-left: 0; text-align: center; }
+            .controls button { width: 100%; }
+            .homework-card { padding: 14px; }
+            .subject { font-size: 16px; }
+        }
+    </style>
 </head>
 <body>
-<div class=container>
-<div class=header><h1>📚 初三作业看板</h1><span id=currentDate>--</span></div>
-<div class=controls>
-<label>📅 日期</label>
-<input type=date id=datePicker>
-<button id=fetchBtn>🔄 获取作业</button>
-<span id=statusMsg style=color:#3f7aa6>就绪</span>
+<div class="container">
+    <div class="header">
+        <h1>初三作业看板</h1>
+        <span class="date-display" id="currentDate">--</span>
+    </div>
+
+    <div class="controls">
+        <label for="datePicker">日期</label>
+        <input type="date" id="datePicker">
+        <button id="fetchBtn">获取作业</button>
+        <span class="status-msg" id="statusMsg">就绪</span>
+    </div>
+
+    <div class="stats" id="statsBar">
+        <div class="stats-item">科目 <strong id="subjectCount">0</strong></div>
+        <div class="stats-item">分层组 <strong id="groupCount">0</strong></div>
+        <div class="stats-item">教师 <strong id="teacherCount">0</strong></div>
+        <div class="stats-item">总时长 <strong id="totalTime">0</strong> 分钟</div>
+    </div>
+
+    <div id="cardContainer">
+        <div class="empty-state">点击「获取作业」加载数据</div>
+    </div>
 </div>
-<div class=stats>
-<div class=stats-item>📖 科目 <strong id=subjectCount>0</strong></div>
-<div class=stats-item>📋 分层组 <strong id=groupCount>0</strong></div>
-<div class=stats-item>👨‍🏫 教师 <strong id=teacherCount>0</strong></div>
-<div class=stats-item>⏱ 总时长 <strong id=totalTime>0</strong> min</div>
-</div>
-<div id=cardContainer><div class=empty>点击「获取作业」加载数据</div></div>
-</div>
+
 <script>
-// ⚠️ 使用端口转发的外部端口 20144
-const API_URL = 'http://202.189.7.62:20144/api/fetch';
+// ===== 配置 =====
+// 使用端口转发的外部端口 20144
+var API_URL = 'http://202.189.7.62:20144/api/fetch';
 
-const d=document.getElementById('datePicker');
-const b=document.getElementById('fetchBtn');
-const s=document.getElementById('statusMsg');
-const c=document.getElementById('cardContainer');
-d.value=new Date().toISOString().split('T')[0];
+// ===== DOM 元素 =====
+var datePicker = document.getElementById('datePicker');
+var fetchBtn = document.getElementById('fetchBtn');
+var statusMsg = document.getElementById('statusMsg');
+var container = document.getElementById('cardContainer');
 
-function parseMinutes(n){if(!n)return 0;const m=n.match(/(\d+)/);return m?parseInt(m[1],10):0}
+// ===== 设置默认日期 =====
+(function() {
+    var today = new Date();
+    var y = today.getFullYear();
+    var m = String(today.getMonth() + 1).padStart(2, '0');
+    var d = String(today.getDate()).padStart(2, '0');
+    datePicker.value = y + '-' + m + '-' + d;
+})();
 
-function renderCards(data){
-if(!data||data.length===0){c.innerHTML='<div class=empty>暂无作业</div>';document.getElementById('subjectCount').textContent='0';document.getElementById('groupCount').textContent='0';document.getElementById('teacherCount').textContent='0';document.getElementById('totalTime').textContent='0';return}
-let sub=new Set(),tea=new Set(),tm=0,gc=0,h='';
-data.forEach(item=>{sub.add(item.Subject);tea.add(item.Teacher);
-const gs=[{l:'A组',c:item.GroupA,n:item.GroupANote},{l:'B组',c:item.GroupB,n:item.GroupBNote},{l:'C组',c:item.GroupC,n:item.GroupCNote}];
-let gh='';gs.forEach((g,i)=>{if(!g.c||g.c.trim()==='')return;gc++;const mins=parseMinutes(g.n);if(mins>0)tm+=mins;const cl=['#6f9bc7','#4f8bbf','#3f7eb3'];gh+=`<div class=group-row style=border-left-color:${cl[i]}><div class=group-label><span>${g.l}</span><span>⏱ ${g.n||'—'}</span></div><div class=group-content>${g.c.replace(/\n/g,'<br>')}</div></div>`});
-if(!gh)gh='<div style=padding:10px 0;color:#999>无分层作业</div>';
-h+=`<div class=homework-card><div class=card-header><span class=subject>${item.Subject||'未知'}</span><span class=teacher>👨‍🏫 ${item.Teacher||'—'}</span></div><div><span class=badge>📅 ${item.Day||''}</span><span class="badge green">✅ ${item.InfoTwo||'通过'}</span><span class=badge>${item.InfoOne||'日常'}</span></div><div style=margin-top:12px>${gh}</div><div class=footer><span>🕐 ${(item.CreateDate||'').slice(0,16)}</span><span>🏷 ${item.InfoOne||'日常'}</span></div></div>`});
-c.innerHTML=h;document.getElementById('subjectCount').textContent=sub.size;document.getElementById('teacherCount').textContent=tea.size;document.getElementById('groupCount').textContent=gc;document.getElementById('totalTime').textContent=tm;document.getElementById('currentDate').textContent=data[0]?.Day||''}
+// ===== 解析分钟 =====
+function parseMinutes(note) {
+    if (!note) return 0;
+    var match = note.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+}
 
-async function fetchHomework(){
-const day=d.value;if(!day){s.textContent='请选择日期';return}
-b.disabled=true;b.textContent='加载中...';s.textContent='请求中...';
-try{
-const r=await fetch(API_URL,{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({day,grade:'%u521D%u4E09',schoolid:'36985645993'})
+// ===== 渲染卡片 =====
+function renderCards(data) {
+    var subjectCountEl = document.getElementById('subjectCount');
+    var groupCountEl = document.getElementById('groupCount');
+    var teacherCountEl = document.getElementById('teacherCount');
+    var totalTimeEl = document.getElementById('totalTime');
+    var currentDateEl = document.getElementById('currentDate');
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无作业数据</div>';
+        subjectCountEl.textContent = '0';
+        groupCountEl.textContent = '0';
+        teacherCountEl.textContent = '0';
+        totalTimeEl.textContent = '0';
+        return;
+    }
+
+    var subjects = new Set();
+    var teachers = new Set();
+    var totalMin = 0;
+    var groupCount = 0;
+    var html = '';
+
+    data.forEach(function(item) {
+        subjects.add(item.Subject);
+        teachers.add(item.Teacher);
+
+        var groups = [
+            { label: 'A组', content: item.GroupA, note: item.GroupANote },
+            { label: 'B组', content: item.GroupB, note: item.GroupBNote },
+            { label: 'C组', content: item.GroupC, note: item.GroupCNote }
+        ];
+
+        var groupHtml = '';
+        groups.forEach(function(g, idx) {
+            if (!g.content || g.content.trim() === '') return;
+            groupCount++;
+            var mins = parseMinutes(g.note);
+            if (mins > 0) totalMin += mins;
+            var colors = ['#6f9bc7', '#4f8bbf', '#3f7eb3'];
+            var rowClass = idx === 0 ? 'group-row' : (idx === 1 ? 'group-row group-b' : 'group-row group-c');
+            var contentHtml = g.content.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>');
+            groupHtml +=
+                '<div class="' + rowClass + '" style="border-left-color:' + colors[idx] + ';">' +
+                    '<div class="group-label">' +
+                        '<span>' + g.label + '</span>' +
+                        '<span class="time-note">' + (g.note || '--') + '</span>' +
+                    '</div>' +
+                    '<div class="group-content">' + contentHtml + '</div>' +
+                '</div>';
+        });
+
+        if (!groupHtml) {
+            groupHtml = '<div style="padding:10px 0;color:#999;font-style:italic;">暂无分层作业</div>';
+        }
+
+        var createDate = item.CreateDate ? item.CreateDate.replace('T', ' ').slice(0, 16) : '';
+        var infoOne = item.InfoOne || '日常';
+        var day = item.Day || '';
+        var infoTwo = item.InfoTwo || '通过';
+
+        html +=
+            '<div class="homework-card">' +
+                '<div class="card-header">' +
+                    '<span class="subject">' + (item.Subject || '未知') + '</span>' +
+                    '<span class="teacher">' + (item.Teacher || '--') + '</span>' +
+                '</div>' +
+                '<div class="info-badge">' +
+                    '<span class="badge">' + day + '</span>' +
+                    '<span class="badge green">' + infoTwo + '</span>' +
+                    '<span class="badge">' + infoOne + '</span>' +
+                '</div>' +
+                '<div class="group-section">' + groupHtml + '</div>' +
+                '<div class="card-footer">' +
+                    '<span>' + createDate + '</span>' +
+                    '<span>' + infoOne + '</span>' +
+                '</div>' +
+            '</div>';
+    });
+
+    container.innerHTML = html;
+    subjectCountEl.textContent = subjects.size;
+    teacherCountEl.textContent = teachers.size;
+    groupCountEl.textContent = groupCount;
+    totalTimeEl.textContent = totalMin;
+    currentDateEl.textContent = data[0] ? data[0].Day || '' : '';
+}
+
+// ===== 获取作业 =====
+function fetchHomework() {
+    var day = datePicker.value;
+    if (!day) {
+        statusMsg.textContent = '请选择日期';
+        statusMsg.className = 'status-msg error';
+        return;
+    }
+
+    fetchBtn.disabled = true;
+    fetchBtn.textContent = '加载中...';
+    statusMsg.textContent = '请求中...';
+    statusMsg.className = 'status-msg';
+
+    var requestBody = {
+        day: day,
+        grade: '%u521D%u4E09',
+        schoolid: '36985645993'
+    };
+
+    fetch(API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(result) {
+        if (!result.success) {
+            throw new Error(result.error || '请求失败');
+        }
+        var data = result.data;
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch(e) {}
+        }
+        if (!Array.isArray(data)) {
+            data = [data];
+        }
+        renderCards(data);
+        statusMsg.textContent = '加载成功 (' + data.length + ' 条)';
+        statusMsg.className = 'status-msg success';
+    })
+    .catch(function(error) {
+        statusMsg.textContent = '错误: ' + error.message;
+        statusMsg.className = 'status-msg error';
+        console.error(error);
+    })
+    .finally(function() {
+        fetchBtn.disabled = false;
+        fetchBtn.textContent = '获取作业';
+    });
+}
+
+// ===== 绑定事件 =====
+fetchBtn.addEventListener('click', fetchHomework);
+datePicker.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        fetchHomework();
+    }
 });
-const j=await r.json();
-if(!j.success)throw new Error(j.error||'失败');
-let data=j.data;
-if(typeof data==='string'){try{data=JSON.parse(data)}catch(e){}}
-if(!Array.isArray(data))data=[data];
-renderCards(data);
-s.textContent=`✅ ${data.length}条`;
-}catch(e){
-s.textContent='❌ '+e.message;
-console.error(e);
-}finally{
-b.disabled=false;
-b.textContent='🔄 获取作业';
-}
-}
 
-b.addEventListener('click',fetchHomework);
-setTimeout(fetchHomework,500);
+// ===== 自动加载 =====
+setTimeout(fetchHomework, 500);
 </script>
 </body>
 </html>
