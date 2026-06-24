@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
@@ -10,478 +10,685 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f0f4f8;
-            padding: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
             min-height: 100vh;
+            padding: 16px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease;
         }
+
+        /* 背景遮罩 - 让内容更清晰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 0;
+            pointer-events: none;
+        }
+
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
+
+        /* ===== 玻璃效果 ===== */
+        .glass {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 2px 16px rgba(0, 20, 40, 0.05);
+        }
+
+        /* ===== 头部 ===== */
         .header {
-            background: #ffffff;
-            padding: 16px 20px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 16px 22px;
+            border-radius: 14px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 8px;
         }
+
         .header h1 {
             font-size: 20px;
             font-weight: 600;
-            color: #1a2e4a;
-            letter-spacing: 0.5px;
+            color: #1a3349;
         }
-        .header .date-display {
-            font-size: 14px;
+
+        .header h1 span {
+            font-weight: 300;
             color: #4a6a8a;
-            background: #eef3f8;
-            padding: 4px 14px;
-            border-radius: 20px;
         }
+
+        .header-date {
+            font-size: 13px;
+            color: #2a5a7a;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 4px 16px;
+            border-radius: 16px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== 控制栏 ===== */
         .controls {
-            background: #ffffff;
-            padding: 14px 18px;
+            padding: 12px 20px;
             border-radius: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 10px 16px;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
+
         .controls label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #2a4a6a;
         }
+
         .controls input[type="date"] {
-            padding: 8px 12px;
-            border: 1px solid #d0dce8;
-            border-radius: 24px;
-            font-size: 14px;
-            background: #f8fafc;
+            padding: 6px 12px;
+            border: 1px solid rgba(180, 200, 220, 0.4);
+            border-radius: 20px;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.6);
             color: #1a2e4a;
             outline: none;
-            flex: 1;
             min-width: 140px;
+            flex: 0 1 150px;
+            height: 34px;
+            transition: all 0.25s;
+            font-family: inherit;
         }
+
+        .controls input[type="date"]::-webkit-calendar-picker-indicator {
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .controls input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 0.8;
+        }
+
+        .controls input[type="date"]::-moz-calendar-picker-indicator {
+            width: 16px;
+            height: 16px;
+            opacity: 0.5;
+        }
+
         .controls input[type="date"]:focus {
-            border-color: #4a8ab5;
+            border-color: #5a8ab5;
+            box-shadow: 0 0 0 3px rgba(42, 92, 138, 0.06);
+            background: rgba(255, 255, 255, 0.85);
         }
-        .controls button {
-            padding: 8px 24px;
+
+        .controls .btn {
+            padding: 6px 24px;
             background: #2a5c8a;
-            color: #ffffff;
+            color: #fff;
             border: none;
-            border-radius: 24px;
-            font-size: 14px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.25s;
             white-space: nowrap;
+            height: 34px;
+            line-height: 1;
         }
-        .controls button:hover {
+
+        .controls .btn:hover {
             background: #1d4a73;
+            box-shadow: 0 4px 12px rgba(42, 92, 138, 0.2);
         }
-        .controls button:disabled {
-            opacity: 0.6;
+
+        .controls .btn:active {
+            transform: scale(0.97);
+        }
+
+        .controls .btn:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        .controls .status-msg {
+
+        .controls .status {
             font-size: 13px;
             color: #3a6a8a;
             margin-left: auto;
-            word-break: break-all;
+            padding: 4px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 0 1 auto;
         }
-        .controls .status-msg.error {
+
+        .controls .status.error {
             color: #c0392b;
+            background: rgba(253, 238, 236, 0.6);
+            border-color: rgba(192, 57, 43, 0.15);
         }
-        .controls .status-msg.success {
+
+        .controls .status.success {
             color: #1a7a4a;
+            background: rgba(230, 243, 236, 0.6);
+            border-color: rgba(26, 122, 74, 0.15);
         }
+
+        /* ===== 统计 ===== */
         .stats {
-            background: #ffffff;
-            padding: 12px 18px;
+            padding: 10px 20px;
             border-radius: 14px;
             margin-bottom: 18px;
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            gap: 8px 28px;
         }
+
         .stats-item {
             font-size: 13px;
             color: #2a4a6a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .stats-item strong {
-            font-weight: 600;
-            color: #1a2e4a;
-            font-size: 15px;
-        }
+
         .stats-item .num {
-            background: #e4edf5;
-            padding: 0 10px;
-            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0 12px;
+            border-radius: 16px;
             font-weight: 600;
             color: #1a4a6a;
             font-size: 13px;
-            line-height: 1.8;
+            line-height: 26px;
             display: inline-block;
+            min-width: 26px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
+        .stats-item strong {
+            font-weight: 600;
+            color: #0b2a44;
+            font-size: 14px;
+        }
+
+        /* ===== 卡片网格 ===== */
         .card-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 16px;
         }
-        @media (min-width: 600px) {
-            body { padding: 20px; }
-            .card-grid { grid-template-columns: 1fr 1fr; }
-            .header h1 { font-size: 24px; }
+
+        @media (min-width: 640px) {
+            .card-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 18px;
+            }
         }
-        @media (min-width: 960px) {
-            body { padding: 30px; }
-            .card-grid { grid-template-columns: 1fr 1fr 1fr; }
+
+        @media (min-width: 1024px) {
+            body { padding: 24px 32px; }
+            .card-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 20px;
+            }
         }
+
+        @media (max-width: 520px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 12px 14px;
+            }
+            .controls .status {
+                margin-left: 0;
+                text-align: center;
+            }
+            .controls .btn {
+                width: 100%;
+                text-align: center;
+            }
+            .controls input[type="date"] {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 14px 16px;
+            }
+            .stats {
+                gap: 4px 14px;
+                padding: 10px 14px;
+            }
+            .stats-item { font-size: 12px; }
+        }
+
+        /* ===== 作业卡片 ===== */
         .homework-card {
-            background: #ffffff;
-            border-radius: 18px;
-            padding: 18px 18px 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border: 1px solid #eaf0f5;
-            transition: box-shadow 0.2s;
+            background: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 18px 18px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 16px rgba(0, 20, 40, 0.04);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
+
         .homework-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 8px 28px rgba(0, 20, 40, 0.08);
+            transform: translateY(-2px);
         }
-        .card-header {
+
+        .card-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #eaf0f5;
+            border-bottom: 1px solid rgba(200, 215, 230, 0.2);
             padding-bottom: 10px;
             margin-bottom: 10px;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 4px 8px;
         }
-        .subject {
-            font-size: 18px;
+
+        .card-subject {
+            font-size: 17px;
             font-weight: 600;
-            color: #132c47;
+            color: #0b2a44;
         }
-        .teacher {
-            font-size: 13px;
+
+        .card-teacher {
+            font-size: 12px;
             color: #1f4d78;
-            background: #eaf1fb;
+            background: rgba(234, 241, 251, 0.5);
             padding: 2px 14px;
-            border-radius: 30px;
+            border-radius: 16px;
             font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .info-badge {
+
+        .card-tags {
             margin-bottom: 10px;
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
         }
-        .badge {
-            background: #eef5fd;
-            padding: 2px 12px;
-            border-radius: 30px;
+
+        .tag {
+            background: rgba(238, 245, 253, 0.5);
+            padding: 1px 12px;
+            border-radius: 16px;
             font-size: 11px;
             color: #2d5f88;
-            border: 1px solid #dce7f5;
+            border: 1px solid rgba(220, 231, 245, 0.2);
             display: inline-block;
+            font-weight: 500;
+            line-height: 22px;
         }
-        .badge.green {
-            background: #e5f3e9;
-            border-color: #b9daca;
+
+        .tag.ok {
+            background: rgba(230, 243, 236, 0.5);
+            border-color: rgba(185, 218, 202, 0.3);
             color: #146b3a;
         }
-        .group-section {
-            margin: 6px 0 2px;
+
+        /* ===== 分组 ===== */
+        .group-list {
+            flex: 1;
         }
-        .group-row {
-            background: #f8faff;
-            border-radius: 14px;
+
+        .group-item {
+            background: rgba(248, 250, 255, 0.4);
+            border-radius: 10px;
             padding: 10px 14px;
-            margin-bottom: 10px;
-            border-left: 4px solid #6f9bc7;
+            margin-bottom: 8px;
+            border-left: 4px solid #4a8ab5;
+            transition: background 0.2s;
         }
-        .group-row.group-b {
-            border-left-color: #4f8bbf;
-            background: #f4faff;
+
+        .group-item:last-child {
+            margin-bottom: 0;
         }
-        .group-row.group-c {
-            border-left-color: #3f7eb3;
-            background: #f2f9fe;
+
+        .group-item:hover {
+            background: rgba(248, 250, 255, 0.7);
         }
-        .group-label {
+
+        .group-item.level-a {
+            border-left-color: #2a6a9a;
+        }
+
+        .group-item.level-b {
+            border-left-color: #3a7aaa;
+            background: rgba(244, 250, 255, 0.4);
+        }
+
+        .group-item.level-c {
+            border-left-color: #2a5a8a;
+            background: rgba(242, 249, 254, 0.4);
+        }
+
+        .group-item .group-head {
             display: flex;
             justify-content: space-between;
             font-weight: 600;
-            color: #1e3f62;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-        .group-label .time-note {
-            font-weight: 400;
-            color: #4a7a9a;
+            color: #0b2a44;
             font-size: 12px;
+            margin-bottom: 2px;
         }
-        .group-content {
+
+        .group-item .group-head .time {
+            font-weight: 400;
+            color: #2a5a7a;
+            font-size: 11px;
+            background: rgba(228, 238, 247, 0.4);
+            padding: 0 10px;
+            border-radius: 16px;
+            line-height: 20px;
+        }
+
+        .group-item .group-body {
             font-size: 14px;
-            line-height: 1.6;
-            color: #1e334b;
+            line-height: 1.7;
+            color: #1a2e44;
             white-space: pre-wrap;
             word-break: break-word;
+            font-weight: 450;
         }
-        .card-footer {
+
+        .group-empty {
+            padding: 8px 0;
+            color: #7a9ab0;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* ===== 卡片底部 ===== */
+        .card-foot {
             margin-top: 12px;
             padding-top: 10px;
-            border-top: 1px dashed #d6e2f0;
-            font-size: 12px;
-            color: #3f6a8f;
+            border-top: 1px solid rgba(200, 215, 230, 0.2);
+            font-size: 11px;
+            color: #4a6a8a;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 4px 8px;
         }
+
+        .card-foot .type {
+            background: rgba(234, 240, 248, 0.4);
+            padding: 0 12px;
+            border-radius: 16px;
+            line-height: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ===== 空状态 ===== */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #6f8aa8;
-            background: #ffffff;
-            border-radius: 18px;
-            border: 1px dashed #c0d4e8;
+            padding: 50px 20px;
+            color: #5a7a9a;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
         }
-        .loading-text {
-            text-align: center;
-            padding: 30px;
-            color: #3f7aa6;
-        }
-        @media (max-width: 400px) {
-            .header h1 { font-size: 17px; }
-            .controls { flex-direction: column; align-items: stretch; }
-            .controls .status-msg { margin-left: 0; text-align: center; }
-            .controls button { width: 100%; }
-            .homework-card { padding: 14px; }
-            .subject { font-size: 16px; }
-        }
+
+        /* ===== 滚动条 ===== */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(160, 185, 210, 0.3); border-radius: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <div class="header">
-        <h1>初三作业看板</h1>
-        <span class="date-display" id="currentDate">--</span>
-    </div>
 
-    <div class="controls">
-        <label for="datePicker">日期</label>
+    <!-- 头部 -->
+    <header class="header glass">
+        <h1>作业看板 <span>· 初三</span></h1>
+        <span class="header-date" id="currentDate">--</span>
+    </header>
+
+    <!-- 控制栏 -->
+    <section class="controls glass">
+        <label>日期</label>
         <input type="date" id="datePicker">
-        <button id="fetchBtn">获取作业</button>
-        <span class="status-msg" id="statusMsg">就绪</span>
+        <button class="btn" id="fetchBtn">获取作业</button>
+        <span class="status" id="statusMsg">就绪</span>
+    </section>
+
+    <!-- 统计 -->
+    <div class="stats glass" id="statsBar">
+        <span class="stats-item">科目 <strong id="subjectCount">0</strong></span>
+        <span class="stats-item">分层 <strong id="groupCount">0</strong></span>
+        <span class="stats-item">教师 <strong id="teacherCount">0</strong></span>
+        <span class="stats-item">总时长 <strong id="totalTime">0</strong> 分钟</span>
     </div>
 
-    <div class="stats" id="statsBar">
-        <div class="stats-item">科目 <strong id="subjectCount">0</strong></div>
-        <div class="stats-item">分层组 <strong id="groupCount">0</strong></div>
-        <div class="stats-item">教师 <strong id="teacherCount">0</strong></div>
-        <div class="stats-item">总时长 <strong id="totalTime">0</strong> 分钟</div>
-    </div>
-
+    <!-- 卡片容器 -->
     <div id="cardContainer">
-        <div class="empty-state">点击「获取作业」加载数据</div>
+        <div class="empty-state">点击「获取作业」加载今日数据</div>
     </div>
+
 </div>
 
 <script>
-// ===== 配置 =====
-// 使用端口转发的外部端口 20144
-var API_URL = 'http://202.189.7.62:20144/api/fetch';
+    (function() {
 
-// ===== DOM 元素 =====
-var datePicker = document.getElementById('datePicker');
-var fetchBtn = document.getElementById('fetchBtn');
-var statusMsg = document.getElementById('statusMsg');
-var container = document.getElementById('cardContainer');
+        // ===== 随机背景 =====
+        (function setRandomBackground() {
+            var bgCount = 6;
+            var randomNum = Math.floor(Math.random() * bgCount) + 1;
+            var bgUrl = 'bg' + randomNum + '.png';
+            document.body.style.backgroundImage = 'url(' + bgUrl + ')';
+        })();
 
-// ===== 设置默认日期 =====
-(function() {
-    var today = new Date();
-    var y = today.getFullYear();
-    var m = String(today.getMonth() + 1).padStart(2, '0');
-    var d = String(today.getDate()).padStart(2, '0');
-    datePicker.value = y + '-' + m + '-' + d;
-})();
+        // ===== API 配置 =====
+        var API_URL = 'http://202.189.7.62:20144/api/fetch';
 
-// ===== 解析分钟 =====
-function parseMinutes(note) {
-    if (!note) return 0;
-    var match = note.match(/(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
-}
+        var datePicker = document.getElementById('datePicker');
+        var fetchBtn = document.getElementById('fetchBtn');
+        var statusMsg = document.getElementById('statusMsg');
+        var container = document.getElementById('cardContainer');
 
-// ===== 渲染卡片 =====
-function renderCards(data) {
-    var subjectCountEl = document.getElementById('subjectCount');
-    var groupCountEl = document.getElementById('groupCount');
-    var teacherCountEl = document.getElementById('teacherCount');
-    var totalTimeEl = document.getElementById('totalTime');
-    var currentDateEl = document.getElementById('currentDate');
+        function setDefaultDate() {
+            var today = new Date();
+            var y = today.getFullYear();
+            var m = String(today.getMonth() + 1).padStart(2, '0');
+            var d = String(today.getDate()).padStart(2, '0');
+            datePicker.value = y + '-' + m + '-' + d;
+        }
+        setDefaultDate();
 
-    if (!data || data.length === 0) {
-        container.innerHTML = '<div class="empty-state">暂无作业数据</div>';
-        subjectCountEl.textContent = '0';
-        groupCountEl.textContent = '0';
-        teacherCountEl.textContent = '0';
-        totalTimeEl.textContent = '0';
-        return;
-    }
+        function parseMinutes(note) {
+            if (!note) return 0;
+            var match = note.match(/(\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+        }
 
-    var subjects = new Set();
-    var teachers = new Set();
-    var totalMin = 0;
-    var groupCount = 0;
-    var html = '';
+        function renderCards(data) {
+            var subjectEl = document.getElementById('subjectCount');
+            var groupEl = document.getElementById('groupCount');
+            var teacherEl = document.getElementById('teacherCount');
+            var timeEl = document.getElementById('totalTime');
+            var dateDisplay = document.getElementById('currentDate');
 
-    data.forEach(function(item) {
-        subjects.add(item.Subject);
-        teachers.add(item.Teacher);
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无作业数据</div>';
+                subjectEl.textContent = '0';
+                groupEl.textContent = '0';
+                teacherEl.textContent = '0';
+                timeEl.textContent = '0';
+                return;
+            }
 
-        var groups = [
-            { label: 'A组', content: item.GroupA, note: item.GroupANote },
-            { label: 'B组', content: item.GroupB, note: item.GroupBNote },
-            { label: 'C组', content: item.GroupC, note: item.GroupCNote }
-        ];
+            var subjects = new Set();
+            var teachers = new Set();
+            var totalMin = 0;
+            var groupCount = 0;
+            var html = '';
 
-        var groupHtml = '';
-        groups.forEach(function(g, idx) {
-            if (!g.content || g.content.trim() === '') return;
-            groupCount++;
-            var mins = parseMinutes(g.note);
-            if (mins > 0) totalMin += mins;
-            var colors = ['#6f9bc7', '#4f8bbf', '#3f7eb3'];
-            var rowClass = idx === 0 ? 'group-row' : (idx === 1 ? 'group-row group-b' : 'group-row group-c');
-            var contentHtml = g.content.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>');
-            groupHtml +=
-                '<div class="' + rowClass + '" style="border-left-color:' + colors[idx] + ';">' +
-                    '<div class="group-label">' +
-                        '<span>' + g.label + '</span>' +
-                        '<span class="time-note">' + (g.note || '--') + '</span>' +
-                    '</div>' +
-                    '<div class="group-content">' + contentHtml + '</div>' +
-                '</div>';
+            data.forEach(function(item) {
+                subjects.add(item.Subject);
+                teachers.add(item.Teacher);
+
+                var groups = [
+                    { label: 'A 组', content: item.GroupA, note: item.GroupANote, cls: 'level-a' },
+                    { label: 'B 组', content: item.GroupB, note: item.GroupBNote, cls: 'level-b' },
+                    { label: 'C 组', content: item.GroupC, note: item.GroupCNote, cls: 'level-c' }
+                ];
+
+                var groupHtml = '';
+                groups.forEach(function(g) {
+                    if (!g.content || g.content.trim() === '') return;
+                    groupCount++;
+                    var mins = parseMinutes(g.note);
+                    if (mins > 0) totalMin += mins;
+
+                    var contentHtml = g.content.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>');
+                    groupHtml +=
+                        '<div class="group-item ' + g.cls + '">' +
+                            '<div class="group-head">' +
+                                '<span>' + g.label + '</span>' +
+                                '<span class="time">' + (g.note || '--') + '</span>' +
+                            '</div>' +
+                            '<div class="group-body">' + contentHtml + '</div>' +
+                        '</div>';
+                });
+
+                if (!groupHtml) {
+                    groupHtml = '<div class="group-empty">暂无分层作业</div>';
+                }
+
+                var createDate = item.CreateDate ? item.CreateDate.replace('T', ' ').slice(0, 16) : '';
+                var infoOne = item.InfoOne || '日常';
+                var day = item.Day || '';
+                var infoTwo = item.InfoTwo || '通过';
+                var subject = item.Subject || '未知';
+                var teacher = item.Teacher || '--';
+
+                html +=
+                    '<div class="homework-card">' +
+                        '<div class="card-top">' +
+                            '<span class="card-subject">' + subject + '</span>' +
+                            '<span class="card-teacher">' + teacher + '</span>' +
+                        '</div>' +
+                        '<div class="card-tags">' +
+                            '<span class="tag">' + day + '</span>' +
+                            '<span class="tag ok">' + infoTwo + '</span>' +
+                            '<span class="tag">' + infoOne + '</span>' +
+                        '</div>' +
+                        '<div class="group-list">' + groupHtml + '</div>' +
+                        '<div class="card-foot">' +
+                            '<span>' + createDate + '</span>' +
+                            '<span class="type">' + infoOne + '</span>' +
+                        '</div>' +
+                    '</div>';
+            });
+
+            container.innerHTML = html;
+            subjectEl.textContent = subjects.size;
+            teacherEl.textContent = teachers.size;
+            groupEl.textContent = groupCount;
+            timeEl.textContent = totalMin;
+
+            if (data[0] && data[0].Day) {
+                dateDisplay.textContent = data[0].Day;
+            } else {
+                var d = new Date();
+                dateDisplay.textContent = d.toISOString().slice(0, 10);
+            }
+        }
+
+        function fetchHomework() {
+            var day = datePicker.value;
+            if (!day) {
+                statusMsg.textContent = '请选择日期';
+                statusMsg.className = 'status error';
+                return;
+            }
+
+            fetchBtn.disabled = true;
+            fetchBtn.textContent = '加载中...';
+            statusMsg.textContent = '请求中...';
+            statusMsg.className = 'status';
+
+            var payload = {
+                day: day,
+                grade: '%u521D%u4E09',
+                schoolid: '36985645993'
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(result) {
+                if (!result.success) {
+                    throw new Error(result.error || '请求失败');
+                }
+                var data = result.data;
+                if (typeof data === 'string') {
+                    try { data = JSON.parse(data); } catch (e) {}
+                }
+                if (!Array.isArray(data)) {
+                    data = [data];
+                }
+                renderCards(data);
+                statusMsg.textContent = '加载成功 (' + data.length + ' 条)';
+                statusMsg.className = 'status success';
+            })
+            .catch(function(err) {
+                statusMsg.textContent = '错误: ' + err.message;
+                statusMsg.className = 'status error';
+                console.error(err);
+            })
+            .finally(function() {
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = '获取作业';
+            });
+        }
+
+        fetchBtn.addEventListener('click', fetchHomework);
+
+        datePicker.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') fetchHomework();
         });
 
-        if (!groupHtml) {
-            groupHtml = '<div style="padding:10px 0;color:#999;font-style:italic;">暂无分层作业</div>';
-        }
+        setTimeout(fetchHomework, 400);
 
-        var createDate = item.CreateDate ? item.CreateDate.replace('T', ' ').slice(0, 16) : '';
-        var infoOne = item.InfoOne || '日常';
-        var day = item.Day || '';
-        var infoTwo = item.InfoTwo || '通过';
-
-        html +=
-            '<div class="homework-card">' +
-                '<div class="card-header">' +
-                    '<span class="subject">' + (item.Subject || '未知') + '</span>' +
-                    '<span class="teacher">' + (item.Teacher || '--') + '</span>' +
-                '</div>' +
-                '<div class="info-badge">' +
-                    '<span class="badge">' + day + '</span>' +
-                    '<span class="badge green">' + infoTwo + '</span>' +
-                    '<span class="badge">' + infoOne + '</span>' +
-                '</div>' +
-                '<div class="group-section">' + groupHtml + '</div>' +
-                '<div class="card-footer">' +
-                    '<span>' + createDate + '</span>' +
-                    '<span>' + infoOne + '</span>' +
-                '</div>' +
-            '</div>';
-    });
-
-    container.innerHTML = html;
-    subjectCountEl.textContent = subjects.size;
-    teacherCountEl.textContent = teachers.size;
-    groupCountEl.textContent = groupCount;
-    totalTimeEl.textContent = totalMin;
-    currentDateEl.textContent = data[0] ? data[0].Day || '' : '';
-}
-
-// ===== 获取作业 =====
-function fetchHomework() {
-    var day = datePicker.value;
-    if (!day) {
-        statusMsg.textContent = '请选择日期';
-        statusMsg.className = 'status-msg error';
-        return;
-    }
-
-    fetchBtn.disabled = true;
-    fetchBtn.textContent = '加载中...';
-    statusMsg.textContent = '请求中...';
-    statusMsg.className = 'status-msg';
-
-    var requestBody = {
-        day: day,
-        grade: '%u521D%u4E09',
-        schoolid: '36985645993'
-    };
-
-    fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-    })
-    .then(function(response) {
-        return response.json();
-    })
-    .then(function(result) {
-        if (!result.success) {
-            throw new Error(result.error || '请求失败');
-        }
-        var data = result.data;
-        if (typeof data === 'string') {
-            try { data = JSON.parse(data); } catch(e) {}
-        }
-        if (!Array.isArray(data)) {
-            data = [data];
-        }
-        renderCards(data);
-        statusMsg.textContent = '加载成功 (' + data.length + ' 条)';
-        statusMsg.className = 'status-msg success';
-    })
-    .catch(function(error) {
-        statusMsg.textContent = '错误: ' + error.message;
-        statusMsg.className = 'status-msg error';
-        console.error(error);
-    })
-    .finally(function() {
-        fetchBtn.disabled = false;
-        fetchBtn.textContent = '获取作业';
-    });
-}
-
-// ===== 绑定事件 =====
-fetchBtn.addEventListener('click', fetchHomework);
-datePicker.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        fetchHomework();
-    }
-});
-
-// ===== 自动加载 =====
-setTimeout(fetchHomework, 500);
+    })();
 </script>
+
 </body>
 </html>
