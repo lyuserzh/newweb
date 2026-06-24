@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>初三作业看板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui;background:#f0f4fa;padding:20px}
+.container{max-width:1200px;margin:0 auto}
+.header{background:#fff;padding:20px 24px;border-radius:20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.controls{background:#fff;padding:16px 24px;border-radius:16px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.controls input,.controls button{padding:8px 16px;border-radius:30px;border:1px solid #dce7f3}
+.controls button{background:#2a5c8a;color:#fff;border:none;cursor:pointer}
+.controls button:hover{background:#1d4a73}
+.stats{background:#fff;padding:14px 24px;border-radius:40px;margin-bottom:24px;display:flex;flex-wrap:wrap;gap:20px}
+.stats-item{display:flex;gap:8px;align-items:center}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.homework-card{background:#fff;border-radius:24px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.card-header{display:flex;justify-content:space-between;border-bottom:1px solid #ecf3fa;padding-bottom:12px;margin-bottom:12px}
+.subject{font-size:1.2rem;font-weight:600}
+.teacher{color:#1f4d78;background:#eaf1fb;padding:4px 12px;border-radius:30px;font-size:.8rem}
+.group-row{background:#f8faff;border-radius:14px;padding:12px 16px;margin-bottom:10px;border-left:4px solid #6f9bc7}
+.group-label{display:flex;justify-content:space-between;font-weight:600;color:#1e3f62}
+.group-content{font-size:.94rem;line-height:1.6;color:#1e334b;white-space:pre-wrap}
+.footer{margin-top:12px;padding-top:12px;border-top:1px dashed #d6e2f0;font-size:.8rem;color:#3f6a8f;display:flex;justify-content:space-between}
+.empty{text-align:center;padding:60px 20px;color:#6f8aa8}
+.badge{background:#eef5fd;padding:2px 12px;border-radius:40px;font-size:.7rem;color:#2d5f88;display:inline-block;margin-right:6px}
+.badge.green{background:#e5f3e9;color:#146b3a}
+</style>
+</head>
+<body>
+<div class=container>
+<div class=header><h1>📚 初三作业看板</h1><span id=currentDate>--</span></div>
+<div class=controls>
+<label>📅 日期</label>
+<input type=date id=datePicker>
+<button id=fetchBtn>🔄 获取作业</button>
+<span id=statusMsg style=color:#3f7aa6>就绪</span>
+</div>
+<div class=stats>
+<div class=stats-item>📖 科目 <strong id=subjectCount>0</strong></div>
+<div class=stats-item>📋 分层组 <strong id=groupCount>0</strong></div>
+<div class=stats-item>👨‍🏫 教师 <strong id=teacherCount>0</strong></div>
+<div class=stats-item>⏱ 总时长 <strong id=totalTime>0</strong> min</div>
+</div>
+<div id=cardContainer><div class=empty>点击「获取作业」加载数据</div></div>
+</div>
+<script>
+// ⚠️ 改成你的山东机器IP和端口
+const API_URL = 'http://202.189.7.62:20144/api/fetch';
+
+const d=document.getElementById('datePicker');
+const b=document.getElementById('fetchBtn');
+const s=document.getElementById('statusMsg');
+const c=document.getElementById('cardContainer');
+d.value=new Date().toISOString().split('T')[0];
+function parseMinutes(n){if(!n)return 0;const m=n.match(/(\d+)/);return m?parseInt(m[1],10):0}
+function renderCards(data){
+if(!data||data.length===0){c.innerHTML='<div class=empty>暂无作业</div>';document.getElementById('subjectCount').textContent='0';document.getElementById('groupCount').textContent='0';document.getElementById('teacherCount').textContent='0';document.getElementById('totalTime').textContent='0';return}
+let sub=new Set(),tea=new Set(),tm=0,gc=0,h='';
+data.forEach(item=>{sub.add(item.Subject);tea.add(item.Teacher);
+const gs=[{l:'A组',c:item.GroupA,n:item.GroupANote},{l:'B组',c:item.GroupB,n:item.GroupBNote},{l:'C组',c:item.GroupC,n:item.GroupCNote}];
+let gh='';gs.forEach((g,i)=>{if(!g.c||g.c.trim()==='')return;gc++;const mins=parseMinutes(g.n);if(mins>0)tm+=mins;const cl=['#6f9bc7','#4f8bbf','#3f7eb3'];gh+=`<div class=group-row style=border-left-color:${cl[i]}><div class=group-label><span>${g.l}</span><span>⏱ ${g.n||'—'}</span></div><div class=group-content>${g.c.replace(/\n/g,'<br>')}</div></div>`});
+if(!gh)gh='<div style=padding:10px 0;color:#999>无分层作业</div>';
+h+=`<div class=homework-card><div class=card-header><span class=subject>${item.Subject||'未知'}</span><span class=teacher>👨‍🏫 ${item.Teacher||'—'}</span></div><div><span class=badge>📅 ${item.Day||''}</span><span class="badge green">✅ ${item.InfoTwo||'通过'}</span><span class=badge>${item.InfoOne||'日常'}</span></div><div style=margin-top:12px>${gh}</div><div class=footer><span>🕐 ${(item.CreateDate||'').slice(0,16)}</span><span>🏷 ${item.InfoOne||'日常'}</span></div></div>`});
+c.innerHTML=h;document.getElementById('subjectCount').textContent=sub.size;document.getElementById('teacherCount').textContent=tea.size;document.getElementById('groupCount').textContent=gc;document.getElementById('totalTime').textContent=tm;document.getElementById('currentDate').textContent=data[0]?.Day||''}
+async function fetchHomework(){
+const day=d.value;if(!day){s.textContent='请选择日期';return}
+b.disabled=true;b.textContent='加载中...';s.textContent='请求中...';
+try{const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day,grade:'%u521D%u4E09',schoolid:'36985645993'})});const j=await r.json();if(!j.success)throw new Error(j.error||'失败');let data=j.data;if(typeof data==='string'){try{data=JSON.parse(data)}catch(e){}}if(!Array.isArray(data))data=[data];renderCards(data);s.textContent=`✅ ${data.length}条`}catch(e){s.textContent='❌ '+e.message}finally{b.disabled=false;b.textContent='🔄 获取作业'}}
+b.addEventListener('click',fetchHomework);setTimeout(fetchHomework,500);
+</script>
+</body>
+</html>
