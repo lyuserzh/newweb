@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
     <title>作业看板</title>
     <style>
+        /* ===== 取消点击蓝色选中框 ===== */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        button:focus,
+        input:focus,
+        select:focus,
+        .grade-btn:focus,
+        .btn:focus,
+        .change-grade-btn:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ===== 基础样式 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -91,6 +108,13 @@
             font-weight: 500;
             height: 30px;
             line-height: 1;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .header .change-grade-btn:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         .header .change-grade-btn:hover {
@@ -137,6 +161,14 @@
             height: 34px;
             transition: all 0.25s;
             font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .controls input[type="date"]:focus {
+            outline: none;
+            box-shadow: none;
+            border-color: #5a8ab5;
+            background: rgba(255, 255, 255, 0.85);
         }
 
         .controls input[type="date"]::-webkit-calendar-picker-indicator {
@@ -157,12 +189,6 @@
             opacity: 0.5;
         }
 
-        .controls input[type="date"]:focus {
-            border-color: #5a8ab5;
-            box-shadow: 0 0 0 3px rgba(42, 92, 138, 0.06);
-            background: rgba(255, 255, 255, 0.85);
-        }
-
         .controls .btn {
             padding: 6px 24px;
             background: #2a5c8a;
@@ -176,6 +202,13 @@
             white-space: nowrap;
             height: 34px;
             line-height: 1;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .controls .btn:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         .controls .btn:hover {
@@ -557,6 +590,13 @@
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .modal .grade-btn:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         .modal .grade-btn:hover {
@@ -587,6 +627,13 @@
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .modal .close-btn:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         .modal .close-btn:hover {
@@ -632,7 +679,6 @@
 <!-- ===== 主页面 ===== -->
 <div class="container">
 
-    <!-- 头部 -->
     <header class="header glass">
         <div class="header-left">
             <h1>作业看板 <span id="gradeDisplay">· 初三</span></h1>
@@ -641,7 +687,6 @@
         <span class="header-date" id="currentDate">--</span>
     </header>
 
-    <!-- 控制栏 -->
     <section class="controls glass">
         <label>日期</label>
         <input type="date" id="datePicker">
@@ -649,7 +694,6 @@
         <span class="status" id="statusMsg">就绪</span>
     </section>
 
-    <!-- 统计 -->
     <div class="stats glass" id="statsBar">
         <span class="stats-item">科目 <strong id="subjectCount">0</strong></span>
         <span class="stats-item">分层 <strong id="groupCount">0</strong></span>
@@ -657,7 +701,6 @@
         <span class="stats-item">总时长 <strong id="totalTime">0</strong> 分钟</span>
     </div>
 
-    <!-- 卡片容器 -->
     <div id="cardContainer">
         <div class="empty-state">选择日期，点击「获取作业」加载数据</div>
     </div>
