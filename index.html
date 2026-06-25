@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
     <title>选择年级</title>
     <style>
+        /* ===== 取消点击蓝色选中框 ===== */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        button:focus,
+        .grade-btn:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ===== 基础样式 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -80,6 +93,13 @@
             cursor: pointer;
             transition: all 0.25s;
             font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .grade-btn:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         .grade-btn:hover {
@@ -99,11 +119,6 @@
             font-weight: 400;
             color: #5a7a9a;
             margin-top: 4px;
-        }
-
-        .grade-btn.selected {
-            background: rgba(42, 92, 138, 0.15);
-            border-color: #2a5c8a;
         }
 
         @media (max-width: 420px) {
@@ -155,16 +170,13 @@
                 var grade = this.dataset.grade;
                 var name = this.dataset.name;
 
-                // 保存到 localStorage
                 localStorage.setItem('selectedGrade', grade);
                 localStorage.setItem('selectedGradeName', name);
 
-                // 跳转到作业页面
                 window.location.href = 'dashboard.html';
             });
         });
 
-        // 如果已经有保存的年级，直接跳转
         var savedGrade = localStorage.getItem('selectedGrade');
         if (savedGrade) {
             window.location.href = 'dashboard.html';
