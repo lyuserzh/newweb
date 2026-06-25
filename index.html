@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>选择年级</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e6edf4;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 0;
+        }
+
+        .selector {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.60);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 48px 40px 40px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.12);
+            text-align: center;
+        }
+
+        .selector h1 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #1a3349;
+            margin-bottom: 6px;
+        }
+
+        .selector p {
+            font-size: 14px;
+            color: #4a6a8a;
+            margin-bottom: 28px;
+        }
+
+        .grade-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .grade-btn {
+            padding: 18px 12px;
+            border: 1px solid rgba(180, 200, 220, 0.3);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.4);
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a3349;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+
+        .grade-btn:hover {
+            background: rgba(42, 92, 138, 0.12);
+            border-color: #2a5c8a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(42, 92, 138, 0.10);
+        }
+
+        .grade-btn:active {
+            transform: scale(0.97);
+        }
+
+        .grade-btn .sub {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: #5a7a9a;
+            margin-top: 4px;
+        }
+
+        .grade-btn.selected {
+            background: rgba(42, 92, 138, 0.15);
+            border-color: #2a5c8a;
+        }
+
+        @media (max-width: 420px) {
+            .selector { padding: 32px 20px 28px; }
+            .selector h1 { font-size: 22px; }
+            .grade-btn { font-size: 16px; padding: 14px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="selector">
+    <h1>选择年级</h1>
+    <p>请选择你要查看的年级</p>
+    <div class="grade-grid">
+        <button class="grade-btn" data-grade="%u521D%u4E00" data-name="初一">
+            初一
+            <span class="sub">七年级</span>
+        </button>
+        <button class="grade-btn" data-grade="%u521D%u4E8C" data-name="初二">
+            初二
+            <span class="sub">八年级</span>
+        </button>
+        <button class="grade-btn" data-grade="%u521D%u4E09" data-name="初三">
+            初三
+            <span class="sub">九年级</span>
+        </button>
+        <button class="grade-btn" data-grade="%u521D%u56DB" data-name="初四">
+            初四
+            <span class="sub">四年级</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    (function() {
+
+        // 随机背景
+        (function setRandomBackground() {
+            var bgCount = 6;
+            var randomNum = Math.floor(Math.random() * bgCount) + 1;
+            document.body.style.backgroundImage = 'url(bg' + randomNum + '.png)';
+        })();
+
+        var gradeBtns = document.querySelectorAll('.grade-btn');
+
+        gradeBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var grade = this.dataset.grade;
+                var name = this.dataset.name;
+
+                // 保存到 localStorage
+                localStorage.setItem('selectedGrade', grade);
+                localStorage.setItem('selectedGradeName', name);
+
+                // 跳转到作业页面
+                window.location.href = 'dashboard.html';
+            });
+        });
+
+        // 如果已经有保存的年级，直接跳转
+        var savedGrade = localStorage.getItem('selectedGrade');
+        if (savedGrade) {
+            window.location.href = 'dashboard.html';
+        }
+
+    })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>作业看板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            padding: 16px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 2px 16px rgba(0, 20, 40, 0.05);
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            padding: 14px 20px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a3349;
+        }
+
+        .header h1 span {
+            font-weight: 300;
+            color: #4a6a8a;
+        }
+
+        .header .change-grade-btn {
+            padding: 4px 16px;
+            background: rgba(42, 92, 138, 0.12);
+            border: 1px solid rgba(42, 92, 138, 0.2);
+            border-radius: 16px;
+            font-size: 12px;
+            color: #2a5c8a;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+            height: 30px;
+            line-height: 1;
+        }
+
+        .header .change-grade-btn:hover {
+            background: rgba(42, 92, 138, 0.2);
+        }
+
+        .header-date {
+            font-size: 13px;
+            color: #2a5a7a;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 4px 16px;
+            border-radius: 16px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== 控制栏 ===== */
+        .controls {
+            padding: 12px 20px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            align-items: center;
+        }
+
+        .controls label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #2a4a6a;
+        }
+
+        .controls input[type="date"] {
+            padding: 6px 12px;
+            border: 1px solid rgba(180, 200, 220, 0.4);
+            border-radius: 20px;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.6);
+            color: #1a2e4a;
+            outline: none;
+            min-width: 140px;
+            flex: 0 1 150px;
+            height: 34px;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+
+        .controls input[type="date"]::-webkit-calendar-picker-indicator {
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .controls input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 0.8;
+        }
+
+        .controls input[type="date"]::-moz-calendar-picker-indicator {
+            width: 16px;
+            height: 16px;
+            opacity: 0.5;
+        }
+
+        .controls input[type="date"]:focus {
+            border-color: #5a8ab5;
+            box-shadow: 0 0 0 3px rgba(42, 92, 138, 0.06);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .controls .btn {
+            padding: 6px 24px;
+            background: #2a5c8a;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s;
+            white-space: nowrap;
+            height: 34px;
+            line-height: 1;
+        }
+
+        .controls .btn:hover {
+            background: #1d4a73;
+            box-shadow: 0 4px 12px rgba(42, 92, 138, 0.2);
+        }
+
+        .controls .btn:active {
+            transform: scale(0.97);
+        }
+
+        .controls .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .controls .status {
+            font-size: 13px;
+            color: #3a6a8a;
+            margin-left: auto;
+            padding: 4px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 0 1 auto;
+        }
+
+        .controls .status.error {
+            color: #c0392b;
+            background: rgba(253, 238, 236, 0.6);
+            border-color: rgba(192, 57, 43, 0.15);
+        }
+
+        .controls .status.success {
+            color: #1a7a4a;
+            background: rgba(230, 243, 236, 0.6);
+            border-color: rgba(26, 122, 74, 0.15);
+        }
+
+        /* ===== 统计 ===== */
+        .stats {
+            padding: 10px 20px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 28px;
+        }
+
+        .stats-item {
+            font-size: 13px;
+            color: #2a4a6a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-item .num {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            color: #1a4a6a;
+            font-size: 13px;
+            line-height: 26px;
+            display: inline-block;
+            min-width: 26px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-item strong {
+            font-weight: 600;
+            color: #0b2a44;
+            font-size: 14px;
+        }
+
+        /* ===== 卡片网格 ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 640px) {
+            .card-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 18px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body { padding: 24px 32px; }
+            .card-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 12px 14px;
+            }
+            .controls .status {
+                margin-left: 0;
+                text-align: center;
+            }
+            .controls .btn {
+                width: 100%;
+                text-align: center;
+            }
+            .controls input[type="date"] {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 14px 16px;
+            }
+            .header-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .stats {
+                gap: 4px 14px;
+                padding: 10px 14px;
+            }
+            .stats-item { font-size: 12px; }
+        }
+
+        /* ===== 作业卡片 ===== */
+        .homework-card {
+            background: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 18px 18px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 16px rgba(0, 20, 40, 0.04);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .homework-card:hover {
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 8px 28px rgba(0, 20, 40, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(200, 215, 230, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+        }
+
+        .card-subject {
+            font-size: 17px;
+            font-weight: 600;
+            color: #0b2a44;
+        }
+
+        .card-teacher {
+            font-size: 12px;
+            color: #1f4d78;
+            background: rgba(234, 241, 251, 0.5);
+            padding: 2px 14px;
+            border-radius: 16px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-tags {
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tag {
+            background: rgba(238, 245, 253, 0.5);
+            padding: 1px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            color: #2d5f88;
+            border: 1px solid rgba(220, 231, 245, 0.2);
+            display: inline-block;
+            font-weight: 500;
+            line-height: 22px;
+        }
+
+        .tag.ok {
+            background: rgba(230, 243, 236, 0.5);
+            border-color: rgba(185, 218, 202, 0.3);
+            color: #146b3a;
+        }
+
+        .group-list {
+            flex: 1;
+        }
+
+        .group-item {
+            background: rgba(248, 250, 255, 0.4);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-left: 4px solid #4a8ab5;
+            transition: background 0.2s;
+        }
+
+        .group-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .group-item:hover {
+            background: rgba(248, 250, 255, 0.7);
+        }
+
+        .group-item.level-a {
+            border-left-color: #2a6a9a;
+        }
+
+        .group-item.level-b {
+            border-left-color: #3a7aaa;
+            background: rgba(244, 250, 255, 0.4);
+        }
+
+        .group-item.level-c {
+            border-left-color: #2a5a8a;
+            background: rgba(242, 249, 254, 0.4);
+        }
+
+        .group-item .group-head {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #0b2a44;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .group-item .group-head .time {
+            font-weight: 400;
+            color: #2a5a7a;
+            font-size: 11px;
+            background: rgba(228, 238, 247, 0.4);
+            padding: 0 10px;
+            border-radius: 16px;
+            line-height: 20px;
+        }
+
+        .group-item .group-body {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #1a2e44;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-weight: 450;
+        }
+
+        .group-empty {
+            padding: 8px 0;
+            color: #7a9ab0;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        .card-foot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(200, 215, 230, 0.2);
+            font-size: 11px;
+            color: #4a6a8a;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+        }
+
+        .card-foot .type {
+            background: rgba(234, 240, 248, 0.4);
+            padding: 0 12px;
+            border-radius: 16px;
+            line-height: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #5a7a9a;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(160, 185, 210, 0.3); border-radius: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* ===== 年级切换弹窗 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px 36px 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 24px 64px rgba(0, 20, 40, 0.2);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.95) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a3349;
+            margin-bottom: 6px;
+        }
+
+        .modal p {
+            font-size: 14px;
+            color: #4a6a8a;
+            margin-bottom: 24px;
+        }
+
+        .modal .grade-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal .grade-btn {
+            padding: 14px 10px;
+            border: 1px solid rgba(180, 200, 220, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a3349;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .modal .grade-btn:hover {
+            background: rgba(42, 92, 138, 0.12);
+            border-color: #2a5c8a;
+        }
+
+        .modal .grade-btn:active {
+            transform: scale(0.97);
+        }
+
+        .modal .grade-btn .sub {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: #5a7a9a;
+            margin-top: 2px;
+        }
+
+        .modal .close-btn {
+            margin-top: 16px;
+            padding: 8px 24px;
+            background: transparent;
+            border: 1px solid rgba(180, 200, 220, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            color: #4a6a8a;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .modal .close-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        @media (max-width: 420px) {
+            .modal { padding: 28px 18px 24px; }
+            .modal h2 { font-size: 19px; }
+            .modal .grade-btn { font-size: 15px; padding: 12px 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 年级切换弹窗 ===== -->
+<div class="modal-overlay" id="gradeModal">
+    <div class="modal">
+        <h2>切换年级</h2>
+        <p>选择要查看的年级</p>
+        <div class="grade-grid">
+            <button class="grade-btn" data-grade="%u521D%u4E00" data-name="初一">
+                初一
+                <span class="sub">七年级</span>
+            </button>
+            <button class="grade-btn" data-grade="%u521D%u4E8C" data-name="初二">
+                初二
+                <span class="sub">八年级</span>
+            </button>
+            <button class="grade-btn" data-grade="%u521D%u4E09" data-name="初三">
+                初三
+                <span class="sub">九年级</span>
+            </button>
+            <button class="grade-btn" data-grade="%u521D%u56DB" data-name="初四">
+                初四
+                <span class="sub">四年级</span>
+            </button>
+        </div>
+        <button class="close-btn" id="closeModalBtn">取消</button>
+    </div>
+</div>
+
+<!-- ===== 主页面 ===== -->
+<div class="container">
+
+    <!-- 头部 -->
+    <header class="header glass">
+        <div class="header-left">
+            <h1>作业看板 <span id="gradeDisplay">· 初三</span></h1>
+            <button class="change-grade-btn" id="openModalBtn">切换年级</button>
+        </div>
+        <span class="header-date" id="currentDate">--</span>
+    </header>
+
+    <!-- 控制栏 -->
+    <section class="controls glass">
+        <label>日期</label>
+        <input type="date" id="datePicker">
+        <button class="btn" id="fetchBtn">获取作业</button>
+        <span class="status" id="statusMsg">就绪</span>
+    </section>
+
+    <!-- 统计 -->
+    <div class="stats glass" id="statsBar">
+        <span class="stats-item">科目 <strong id="subjectCount">0</strong></span>
+        <span class="stats-item">分层 <strong id="groupCount">0</strong></span>
+        <span class="stats-item">教师 <strong id="teacherCount">0</strong></span>
+        <span class="stats-item">总时长 <strong id="totalTime">0</strong> 分钟</span>
+    </div>
+
+    <!-- 卡片容器 -->
+    <div id="cardContainer">
+        <div class="empty-state">选择日期，点击「获取作业」加载数据</div>
+    </div>
+
+</div>
+
+<script>
+    (function() {
+
+        // ===== 随机背景 =====
+        (function setRandomBackground() {
+            var bgCount = 6;
+            var randomNum = Math.floor(Math.random() * bgCount) + 1;
+            document.body.style.backgroundImage = 'url(bg' + randomNum + '.png)';
+        })();
+
+        // ===== API 配置 =====
+        var API_URL = 'http://202.189.7.62:20144/api/fetch';
+
+        // ===== DOM 元素 =====
+        var gradeDisplay = document.getElementById('gradeDisplay');
+        var datePicker = document.getElementById('datePicker');
+        var fetchBtn = document.getElementById('fetchBtn');
+        var statusMsg = document.getElementById('statusMsg');
+        var container = document.getElementById('cardContainer');
+
+        // ===== 弹窗元素 =====
+        var modal = document.getElementById('gradeModal');
+        var openModalBtn = document.getElementById('openModalBtn');
+        var closeModalBtn = document.getElementById('closeModalBtn');
+        var modalGradeBtns = modal.querySelectorAll('.grade-btn');
+
+        // ===== 年级名称映射 =====
+        var gradeNameMap = {
+            '%u521D%u4E00': '初一',
+            '%u521D%u4E8C': '初二',
+            '%u521D%u4E09': '初三',
+            '%u521D%u56DB': '初四'
+        };
+
+        // ===== 当前年级 =====
+        var currentGrade = localStorage.getItem('selectedGrade') || '%u521D%u4E09';
+        var currentGradeName = localStorage.getItem('selectedGradeName') || '初三';
+
+        // ===== 更新显示 =====
+        function updateGradeDisplay() {
+            gradeDisplay.textContent = '· ' + currentGradeName;
+        }
+        updateGradeDisplay();
+
+        // ===== 设置默认日期 =====
+        function setDefaultDate() {
+            var today = new Date();
+            var y = today.getFullYear();
+            var m = String(today.getMonth() + 1).padStart(2, '0');
+            var d = String(today.getDate()).padStart(2, '0');
+            datePicker.value = y + '-' + m + '-' + d;
+        }
+        setDefaultDate();
+
+        // ===== 工具函数 =====
+        function parseMinutes(note) {
+            if (!note) return 0;
+            var match = note.match(/(\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+        }
+
+        // ===== 渲染卡片 =====
+        function renderCards(data) {
+            var subjectEl = document.getElementById('subjectCount');
+            var groupEl = document.getElementById('groupCount');
+            var teacherEl = document.getElementById('teacherCount');
+            var timeEl = document.getElementById('totalTime');
+            var dateDisplay = document.getElementById('currentDate');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无作业数据</div>';
+                subjectEl.textContent = '0';
+                groupEl.textContent = '0';
+                teacherEl.textContent = '0';
+                timeEl.textContent = '0';
+                return;
+            }
+
+            var subjects = new Set();
+            var teachers = new Set();
+            var totalMin = 0;
+            var groupCount = 0;
+            var html = '';
+
+            data.forEach(function(item) {
+                subjects.add(item.Subject);
+                teachers.add(item.Teacher);
+
+                var groups = [
+                    { label: 'A 组', content: item.GroupA, note: item.GroupANote, cls: 'level-a' },
+                    { label: 'B 组', content: item.GroupB, note: item.GroupBNote, cls: 'level-b' },
+                    { label: 'C 组', content: item.GroupC, note: item.GroupCNote, cls: 'level-c' }
+                ];
+
+                var groupHtml = '';
+                groups.forEach(function(g) {
+                    if (!g.content || g.content.trim() === '') return;
+                    groupCount++;
+                    var mins = parseMinutes(g.note);
+                    if (mins > 0) totalMin += mins;
+
+                    var contentHtml = g.content.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>');
+                    groupHtml +=
+                        '<div class="group-item ' + g.cls + '">' +
+                            '<div class="group-head">' +
+                                '<span>' + g.label + '</span>' +
+                                '<span class="time">' + (g.note || '--') + '</span>' +
+                            '</div>' +
+                            '<div class="group-body">' + contentHtml + '</div>' +
+                        '</div>';
+                });
+
+                if (!groupHtml) {
+                    groupHtml = '<div class="group-empty">暂无分层作业</div>';
+                }
+
+                var createDate = item.CreateDate ? item.CreateDate.replace('T', ' ').slice(0, 16) : '';
+                var infoOne = item.InfoOne || '日常';
+                var day = item.Day || '';
+                var infoTwo = item.InfoTwo || '通过';
+                var subject = item.Subject || '未知';
+                var teacher = item.Teacher || '--';
+
+                html +=
+                    '<div class="homework-card">' +
+                        '<div class="card-top">' +
+                            '<span class="card-subject">' + subject + '</span>' +
+                            '<span class="card-teacher">' + teacher + '</span>' +
+                        '</div>' +
+                        '<div class="card-tags">' +
+                            '<span class="tag">' + day + '</span>' +
+                            '<span class="tag ok">' + infoTwo + '</span>' +
+                            '<span class="tag">' + infoOne + '</span>' +
+                        '</div>' +
+                        '<div class="group-list">' + groupHtml + '</div>' +
+                        '<div class="card-foot">' +
+                            '<span>' + createDate + '</span>' +
+                            '<span class="type">' + infoOne + '</span>' +
+                        '</div>' +
+                    '</div>';
+            });
+
+            container.innerHTML = html;
+            subjectEl.textContent = subjects.size;
+            teacherEl.textContent = teachers.size;
+            groupEl.textContent = groupCount;
+            timeEl.textContent = totalMin;
+
+            if (data[0] && data[0].Day) {
+                dateDisplay.textContent = data[0].Day;
+            } else {
+                var d = new Date();
+                dateDisplay.textContent = d.toISOString().slice(0, 10);
+            }
+        }
+
+        // ===== 获取作业 =====
+        function fetchHomework() {
+            var day = datePicker.value;
+
+            if (!day) {
+                statusMsg.textContent = '请选择日期';
+                statusMsg.className = 'status error';
+                return;
+            }
+
+            fetchBtn.disabled = true;
+            fetchBtn.textContent = '加载中...';
+            statusMsg.textContent = '请求中...';
+            statusMsg.className = 'status';
+
+            var payload = {
+                day: day,
+                grade: currentGrade,
+                schoolid: '36985645993'
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(result) {
+                if (!result.success) {
+                    throw new Error(result.error || '请求失败');
+                }
+                var data = result.data;
+                if (typeof data === 'string') {
+                    try { data = JSON.parse(data); } catch (e) {}
+                }
+                if (!Array.isArray(data)) {
+                    data = [data];
+                }
+                renderCards(data);
+                statusMsg.textContent = currentGradeName + ' 加载成功 (' + data.length + ' 条)';
+                statusMsg.className = 'status success';
+            })
+            .catch(function(err) {
+                statusMsg.textContent = '错误: ' + err.message;
+                statusMsg.className = 'status error';
+                console.error(err);
+            })
+            .finally(function() {
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = '获取作业';
+            });
+        }
+
+        // ===== 切换年级 =====
+        function switchGrade(grade, name) {
+            currentGrade = grade;
+            currentGradeName = name;
+            localStorage.setItem('selectedGrade', grade);
+            localStorage.setItem('selectedGradeName', name);
+            updateGradeDisplay();
+            modal.classList.remove('active');
+            fetchHomework();
+        }
+
+        // ===== 弹窗控制 =====
+        openModalBtn.addEventListener('click', function() {
+            modal.classList.add('active');
+        });
+
+        closeModalBtn.addEventListener('click', function() {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        modalGradeBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var grade = this.dataset.grade;
+                var name = this.dataset.name;
+                switchGrade(grade, name);
+            });
+        });
+
+        // ===== 事件绑定 =====
+        fetchBtn.addEventListener('click', fetchHomework);
+
+        datePicker.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') fetchHomework();
+        });
+
+        // ===== 自动加载 =====
+        setTimeout(fetchHomework, 400);
+
+    })();
+</script>
+
+</body>
+</html>
