@@ -663,6 +663,7 @@
             font-weight: 600;
         }
 
+        /* ===== 聊天室面板 - 使用 transform 提升拖动性能 ===== */
         .chat-panel {
             position: fixed;
             bottom: 90px;
@@ -684,6 +685,9 @@
             animation: slideUp 0.3s ease;
             user-select: none;
             -webkit-user-select: none;
+            /* 性能优化：使用 transform 代替 left/top */
+            will-change: transform;
+            touch-action: none;
         }
 
         .chat-panel.dragging {
@@ -713,6 +717,7 @@
             flex-wrap: wrap;
             gap: 6px;
             cursor: grab;
+            touch-action: none;
         }
 
         .chat-header:active {
@@ -1352,24 +1357,30 @@
             if (e.key === 'Enter') fetchHomework();
         });
 
-        // ===== 聊天室拖动功能 =====
+        // ===== 聊天室拖动功能（使用 transform，性能优化） =====
         (function initDrag() {
             var panel = document.getElementById('chatPanel');
             var header = panel.querySelector('.chat-header');
             var isDragging = false;
             var startX, startY, offsetX, offsetY;
 
+            // 获取当前 transform 位置
+            function getPanelPosition() {
+                var rect = panel.getBoundingClientRect();
+                return { x: rect.left, y: rect.top };
+            }
+
             header.addEventListener('mousedown', function(e) {
-                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
                     return;
                 }
                 isDragging = true;
                 panel.classList.add('dragging');
-                var rect = panel.getBoundingClientRect();
+                var pos = getPanelPosition();
                 startX = e.clientX;
                 startY = e.clientY;
-                offsetX = rect.left;
-                offsetY = rect.top;
+                offsetX = pos.x;
+                offsetY = pos.y;
                 e.preventDefault();
             });
 
@@ -1383,8 +1394,8 @@
                 var maxY = window.innerHeight - panelHeight - 10;
                 newX = Math.max(10, Math.min(newX, maxX));
                 newY = Math.max(10, Math.min(newY, maxY));
-                panel.style.left = newX + 'px';
-                panel.style.top = newY + 'px';
+                // 使用 transform 代替 left/top，性能更好
+                panel.style.transform = 'translate(' + newX + 'px, ' + newY + 'px)';
                 panel.style.right = 'auto';
                 panel.style.bottom = 'auto';
             });
@@ -1396,9 +1407,10 @@
                 }
             });
 
+            // 触摸支持（移动端）
             var touchStartX, touchStartY, touchOffsetX, touchOffsetY;
             header.addEventListener('touchstart', function(e) {
-                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
                     return;
                 }
                 var touch = e.touches[0];
@@ -1422,8 +1434,7 @@
                 var maxY = window.innerHeight - panelHeight - 10;
                 newX = Math.max(10, Math.min(newX, maxX));
                 newY = Math.max(10, Math.min(newY, maxY));
-                panel.style.left = newX + 'px';
-                panel.style.top = newY + 'px';
+                panel.style.transform = 'translate(' + newX + 'px, ' + newY + 'px)';
                 panel.style.right = 'auto';
                 panel.style.bottom = 'auto';
             }, { passive: true });
@@ -1441,10 +1452,9 @@
                 var panelHeight = panel.offsetHeight;
                 var maxX = window.innerWidth - panelWidth - 10;
                 var maxY = window.innerHeight - panelHeight - 10;
-                if (rect.left > maxX) panel.style.left = maxX + 'px';
-                if (rect.top > maxY) panel.style.top = maxY + 'px';
-                if (rect.left < 10) panel.style.left = '10px';
-                if (rect.top < 10) panel.style.top = '10px';
+                var x = Math.max(10, Math.min(rect.left, maxX));
+                var y = Math.max(10, Math.min(rect.top, maxY));
+                panel.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
             });
         })();
 
@@ -1640,7 +1650,7 @@
                     unreadCount = 0;
                     updateBadge();
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    setTimeout(function() { chatInput.focus(); }, 300);
+                    // 不自动弹出键盘
                 }
             }
 
