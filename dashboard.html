@@ -902,7 +902,7 @@
                     data = [data];
                 }
                 renderCards(data);
-                statusMsg.textContent = currentGradeName + ' 加载成功 (' + data.length + ' 条)';
+                statusMsg.textContent = '加载成功 (' + data.length + ' 条)';
                 statusMsg.className = 'status success';
             })
             .catch(function(err) {
