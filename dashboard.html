@@ -682,6 +682,15 @@
             z-index: 1000;
             overflow: hidden;
             animation: slideUp 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .chat-panel.dragging {
+            opacity: 0.85;
+            cursor: grabbing !important;
+            transition: none !important;
+            animation: none !important;
         }
 
         .chat-panel.active {
@@ -703,6 +712,15 @@
             flex-shrink: 0;
             flex-wrap: wrap;
             gap: 6px;
+            cursor: grab;
+        }
+
+        .chat-header:active {
+            cursor: grabbing;
+        }
+
+        .chat-panel.dragging .chat-header button {
+            pointer-events: none;
         }
 
         .chat-header .left {
@@ -1334,6 +1352,102 @@
             if (e.key === 'Enter') fetchHomework();
         });
 
+        // ===== 聊天室拖动功能 =====
+        (function initDrag() {
+            var panel = document.getElementById('chatPanel');
+            var header = panel.querySelector('.chat-header');
+            var isDragging = false;
+            var startX, startY, offsetX, offsetY;
+
+            header.addEventListener('mousedown', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+                    return;
+                }
+                isDragging = true;
+                panel.classList.add('dragging');
+                var rect = panel.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+                offsetX = rect.left;
+                offsetY = rect.top;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                var newX = offsetX + (e.clientX - startX);
+                var newY = offsetY + (e.clientY - startY);
+                var panelWidth = panel.offsetWidth;
+                var panelHeight = panel.offsetHeight;
+                var maxX = window.innerWidth - panelWidth - 10;
+                var maxY = window.innerHeight - panelHeight - 10;
+                newX = Math.max(10, Math.min(newX, maxX));
+                newY = Math.max(10, Math.min(newY, maxY));
+                panel.style.left = newX + 'px';
+                panel.style.top = newY + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    panel.classList.remove('dragging');
+                }
+            });
+
+            var touchStartX, touchStartY, touchOffsetX, touchOffsetY;
+            header.addEventListener('touchstart', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+                    return;
+                }
+                var touch = e.touches[0];
+                var rect = panel.getBoundingClientRect();
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                touchOffsetX = rect.left;
+                touchOffsetY = rect.top;
+                isDragging = true;
+                panel.classList.add('dragging');
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                var touch = e.touches[0];
+                var newX = touchOffsetX + (touch.clientX - touchStartX);
+                var newY = touchOffsetY + (touch.clientY - touchStartY);
+                var panelWidth = panel.offsetWidth;
+                var panelHeight = panel.offsetHeight;
+                var maxX = window.innerWidth - panelWidth - 10;
+                var maxY = window.innerHeight - panelHeight - 10;
+                newX = Math.max(10, Math.min(newX, maxX));
+                newY = Math.max(10, Math.min(newY, maxY));
+                panel.style.left = newX + 'px';
+                panel.style.top = newY + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    panel.classList.remove('dragging');
+                }
+            }, { passive: true });
+
+            window.addEventListener('resize', function() {
+                var rect = panel.getBoundingClientRect();
+                var panelWidth = panel.offsetWidth;
+                var panelHeight = panel.offsetHeight;
+                var maxX = window.innerWidth - panelWidth - 10;
+                var maxY = window.innerHeight - panelHeight - 10;
+                if (rect.left > maxX) panel.style.left = maxX + 'px';
+                if (rect.top > maxY) panel.style.top = maxY + 'px';
+                if (rect.left < 10) panel.style.left = '10px';
+                if (rect.top < 10) panel.style.top = '10px';
+            });
+        })();
+
         // ===== 聊天室逻辑 =====
         (function initChat() {
             var ws = null;
@@ -1508,7 +1622,6 @@
                 }
             }
 
-            // ===== 发送消息（不本地显示，等服务器广播回来） =====
             function sendMessage() {
                 var text = chatInput.value.trim();
                 if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
@@ -1592,7 +1705,7 @@
         })();
 
         // ===== 自动加载 =====
-        setTimeout(fetchHomework, 400);
+        setTimeout(fetchHomework, 200);
 
     })();
 </script>
