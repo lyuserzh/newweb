@@ -76,6 +76,7 @@
             display: flex;
             align-items: center;
             gap: 14px;
+            flex-wrap: wrap;
         }
 
         .header h1 {
@@ -104,11 +105,6 @@
             line-height: 1;
             -webkit-tap-highlight-color: transparent;
             outline: none;
-        }
-
-        .header .change-grade-btn:focus {
-            outline: none;
-            box-shadow: none;
         }
 
         .header .change-grade-btn:hover {
@@ -197,11 +193,6 @@
             line-height: 1;
             -webkit-tap-highlight-color: transparent;
             outline: none;
-        }
-
-        .controls .btn:focus {
-            outline: none;
-            box-shadow: none;
         }
 
         .controls .btn:hover {
@@ -620,11 +611,6 @@
             outline: none;
         }
 
-        .modal .close-btn:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
         .modal .close-btn:hover {
             background: rgba(0, 0, 0, 0.04);
         }
@@ -715,6 +701,30 @@
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chat-header .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-header .left .user-name {
+            font-size: 12px;
+            color: #2a5c8a;
+            background: rgba(42, 92, 138, 0.1);
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        .chat-header .left .user-name:hover {
+            background: rgba(42, 92, 138, 0.2);
         }
 
         .chat-header h3 {
@@ -854,6 +864,105 @@
             background: #1d4a73;
         }
 
+        /* ===== 修改名字弹窗 ===== */
+        .name-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .name-modal-overlay.active {
+            display: flex;
+        }
+
+        .name-modal {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px 28px 28px;
+            max-width: 360px;
+            width: 90%;
+            box-shadow: 0 24px 64px rgba(0, 20, 40, 0.2);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: modalIn 0.3s ease;
+        }
+
+        .name-modal h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a3349;
+            margin-bottom: 6px;
+        }
+
+        .name-modal p {
+            font-size: 14px;
+            color: #4a6a8a;
+            margin-bottom: 18px;
+        }
+
+        .name-modal input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid rgba(180, 200, 220, 0.3);
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.6);
+            font-family: inherit;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .name-modal input:focus {
+            border-color: #2a5c8a;
+        }
+
+        .name-modal .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .name-modal .btn-group button {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .name-modal .btn-group .confirm {
+            background: #2a5c8a;
+            color: #fff;
+        }
+
+        .name-modal .btn-group .confirm:hover {
+            background: #1d4a73;
+        }
+
+        .name-modal .btn-group .cancel {
+            background: rgba(200, 215, 230, 0.3);
+            color: #4a6a8a;
+        }
+
+        .name-modal .btn-group .cancel:hover {
+            background: rgba(200, 215, 230, 0.5);
+        }
+
         @media (max-width: 480px) {
             .chat-panel {
                 bottom: 80px;
@@ -868,6 +977,9 @@
                 width: 50px;
                 height: 50px;
                 font-size: 20px;
+            }
+            .name-modal {
+                padding: 24px 18px 20px;
             }
         }
     </style>
@@ -898,6 +1010,19 @@
             </button>
         </div>
         <button class="close-btn" id="closeModalBtn">取消</button>
+    </div>
+</div>
+
+<!-- ===== 修改名字弹窗 ===== -->
+<div class="name-modal-overlay" id="nameModal">
+    <div class="name-modal">
+        <h2>设置昵称</h2>
+        <p>输入你在聊天室显示的名字（仅可修改一次）</p>
+        <input type="text" id="nameInput" placeholder="输入昵称..." maxlength="20">
+        <div class="btn-group">
+            <button class="cancel" id="nameCancel">取消</button>
+            <button class="confirm" id="nameConfirm">确认</button>
+        </div>
     </div>
 </div>
 
@@ -941,9 +1066,14 @@
 <!-- ===== 聊天室面板 ===== -->
 <div class="chat-panel" id="chatPanel">
     <div class="chat-header">
-        <h3>聊天室</h3>
-        <span class="online-count" id="onlineCount">0 人在线</span>
-        <button class="close-chat" id="closeChat">✕</button>
+        <div class="left">
+            <h3>聊天室</h3>
+            <button class="user-name" id="changeNameBtn">👤</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span class="online-count" id="onlineCount">0 人在线</span>
+            <button class="close-chat" id="closeChat">✕</button>
+        </div>
     </div>
     <div class="chat-messages" id="chatMessages">
         <div class="msg system">连接中...</div>
@@ -1215,24 +1345,78 @@
             var chatSend = document.getElementById('chatSend');
             var onlineCount = document.getElementById('onlineCount');
             var chatBadge = document.getElementById('chatBadge');
+            var changeNameBtn = document.getElementById('changeNameBtn');
+
+            // ===== 名字管理 =====
+            var nameModal = document.getElementById('nameModal');
+            var nameInput = document.getElementById('nameInput');
+            var nameConfirm = document.getElementById('nameConfirm');
+            var nameCancel = document.getElementById('nameCancel');
+
+            // 检查是否已经修改过名字
+            var hasChangedName = localStorage.getItem('chatNameChanged') === 'true';
+            var myName = localStorage.getItem('chatUserName') || '';
+
+            function getDefaultName() {
+                var grade = localStorage.getItem('selectedGradeName') || '初三';
+                var randomNum = Math.floor(Math.random() * 900) + 100;
+                return grade + '用户' + randomNum;
+            }
+
+            if (!myName) {
+                myName = getDefaultName();
+                localStorage.setItem('chatUserName', myName);
+            }
+
+            // 如果已经改过名字，隐藏修改按钮
+            if (hasChangedName) {
+                if (changeNameBtn) {
+                    changeNameBtn.style.display = 'none';
+                }
+            }
+
             var isOpen = false;
             var unreadCount = 0;
 
+            // ===== WebSocket 连接 =====
             function connect() {
                 try {
                     ws = new WebSocket('ws://202.189.7.62:20144/ws');
 
                     ws.onopen = function() {
                         chatMessages.innerHTML = '';
-                        addSystemMessage('已连接到聊天室');
+                        addSystemMessage('连接中...');
+                        ws.send(JSON.stringify({
+                            type: 'setName',
+                            name: myName
+                        }));
                     };
 
                     ws.onmessage = function(event) {
                         try {
                             var data = JSON.parse(event.data);
+
+                            if (data.type === 'history') {
+                                chatMessages.innerHTML = '';
+                                data.messages.forEach(function(msg) {
+                                    if (msg.type === 'chat') {
+                                        var isSelf = (msg.name === myName);
+                                        addChatMessage(msg.name, msg.message, msg.time, isSelf);
+                                    } else if (msg.type === 'system') {
+                                        addSystemMessage(msg.message);
+                                    }
+                                });
+                                if (data.messages.length === 0) {
+                                    addSystemMessage('暂无历史消息');
+                                }
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                                return;
+                            }
+
                             if (data.type === 'chat') {
-                                addChatMessage(data.name, data.message, data.time, false);
-                                if (!isOpen) {
+                                var isSelf = (data.name === myName);
+                                addChatMessage(data.name, data.message, data.time, isSelf);
+                                if (!isOpen && !isSelf) {
                                     unreadCount++;
                                     updateBadge();
                                 }
@@ -1241,7 +1425,9 @@
                             } else if (data.type === 'online') {
                                 onlineCount.textContent = data.count + ' 人在线';
                             }
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error('解析消息失败:', e);
+                        }
                     };
 
                     ws.onclose = function() {
@@ -1287,7 +1473,7 @@
                 var text = chatInput.value.trim();
                 if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
                 ws.send(JSON.stringify({ type: 'chat', message: text }));
-                addChatMessage('我', text, new Date().toLocaleTimeString(), true);
+                addChatMessage(myName, text, new Date().toLocaleTimeString(), true);
                 chatInput.value = '';
             }
 
@@ -1298,8 +1484,49 @@
                     unreadCount = 0;
                     updateBadge();
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    chatInput.focus();
+                    setTimeout(function() { chatInput.focus(); }, 300);
                 }
+            }
+
+            function openNameModal() {
+                // 如果已经改过名字，不允许再打开
+                if (localStorage.getItem('chatNameChanged') === 'true') {
+                    alert('你已修改过昵称，不能再修改');
+                    return;
+                }
+                nameInput.value = myName;
+                nameModal.classList.add('active');
+                setTimeout(function() { nameInput.focus(); }, 300);
+            }
+
+            function closeNameModal() {
+                nameModal.classList.remove('active');
+            }
+
+            function confirmName() {
+                var newName = nameInput.value.trim();
+                if (!newName) {
+                    alert('请输入昵称');
+                    return;
+                }
+                // 检查是否已经修改过
+                if (localStorage.getItem('chatNameChanged') === 'true') {
+                    alert('你已修改过昵称，不能再修改');
+                    closeNameModal();
+                    return;
+                }
+                myName = newName;
+                localStorage.setItem('chatUserName', myName);
+                localStorage.setItem('chatNameChanged', 'true');
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'setName', name: myName }));
+                }
+                // 隐藏修改按钮
+                var changeNameBtn = document.getElementById('changeNameBtn');
+                if (changeNameBtn) {
+                    changeNameBtn.style.display = 'none';
+                }
+                closeNameModal();
             }
 
             chatToggle.addEventListener('click', toggleChat);
@@ -1308,6 +1535,17 @@
             chatSend.addEventListener('click', sendMessage);
             chatInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') sendMessage();
+            });
+
+            changeNameBtn.addEventListener('click', openNameModal);
+
+            nameConfirm.addEventListener('click', confirmName);
+            nameCancel.addEventListener('click', closeNameModal);
+            nameInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') confirmName();
+            });
+            nameModal.addEventListener('click', function(e) {
+                if (e.target === nameModal) closeNameModal();
             });
 
             connect();
