@@ -1353,7 +1353,6 @@
             var nameConfirm = document.getElementById('nameConfirm');
             var nameCancel = document.getElementById('nameCancel');
 
-            // 检查是否已经修改过名字
             var hasChangedName = localStorage.getItem('chatNameChanged') === 'true';
             var myName = localStorage.getItem('chatUserName') || '';
 
@@ -1368,7 +1367,6 @@
                 localStorage.setItem('chatUserName', myName);
             }
 
-            // 如果已经改过名字，隐藏修改按钮
             if (hasChangedName) {
                 if (changeNameBtn) {
                     changeNameBtn.style.display = 'none';
@@ -1377,6 +1375,14 @@
 
             var isOpen = false;
             var unreadCount = 0;
+
+            // ===== 格式化时间 =====
+            function getTime() {
+                var now = new Date();
+                var h = String(now.getHours()).padStart(2, '0');
+                var m = String(now.getMinutes()).padStart(2, '0');
+                return h + ':' + m;
+            }
 
             // ===== WebSocket 连接 =====
             function connect() {
@@ -1447,7 +1453,8 @@
             function addChatMessage(name, message, time, isSelf) {
                 var div = document.createElement('div');
                 div.className = 'msg ' + (isSelf ? 'self' : 'other');
-                div.innerHTML = '<div class="name">' + name + ' <span class="time">' + (time || '') + '</span></div>' + message;
+                var displayTime = time || getTime();
+                div.innerHTML = '<div class="name">' + name + ' <span class="time">' + displayTime + '</span></div>' + message;
                 chatMessages.appendChild(div);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
@@ -1469,11 +1476,12 @@
                 }
             }
 
+            // ===== 发送消息（修复：不本地显示，等服务器广播回来） =====
             function sendMessage() {
                 var text = chatInput.value.trim();
                 if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
                 ws.send(JSON.stringify({ type: 'chat', message: text }));
-                addChatMessage(myName, text, new Date().toLocaleTimeString(), true);
+                // 不再本地立即显示，等待服务器广播回来
                 chatInput.value = '';
             }
 
@@ -1489,7 +1497,6 @@
             }
 
             function openNameModal() {
-                // 如果已经改过名字，不允许再打开
                 if (localStorage.getItem('chatNameChanged') === 'true') {
                     alert('你已修改过昵称，不能再修改');
                     return;
@@ -1509,7 +1516,6 @@
                     alert('请输入昵称');
                     return;
                 }
-                // 检查是否已经修改过
                 if (localStorage.getItem('chatNameChanged') === 'true') {
                     alert('你已修改过昵称，不能再修改');
                     closeNameModal();
@@ -1521,7 +1527,6 @@
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ type: 'setName', name: myName }));
                 }
-                // 隐藏修改按钮
                 var changeNameBtn = document.getElementById('changeNameBtn');
                 if (changeNameBtn) {
                     changeNameBtn.style.display = 'none';
