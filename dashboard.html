@@ -663,7 +663,6 @@
             font-weight: 600;
         }
 
-        /* ===== 聊天室面板 - 使用 transform 提升拖动性能 ===== */
         .chat-panel {
             position: fixed;
             bottom: 90px;
@@ -685,9 +684,9 @@
             animation: slideUp 0.3s ease;
             user-select: none;
             -webkit-user-select: none;
-            /* 性能优化：使用 transform 代替 left/top */
-            will-change: transform;
             touch-action: none;
+            /* 重置 transform 到默认位置 */
+            transform: translate(0, 0);
         }
 
         .chat-panel.dragging {
@@ -704,6 +703,11 @@
         @keyframes slideUp {
             from { transform: translateY(20px) scale(0.95); opacity: 0; }
             to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* 当面板处于拖动状态时，禁用动画 */
+        .chat-panel.dragging {
+            animation: none !important;
         }
 
         .chat-header {
@@ -1357,18 +1361,36 @@
             if (e.key === 'Enter') fetchHomework();
         });
 
-        // ===== 聊天室拖动功能（使用 transform，性能优化） =====
+        // ===== 聊天室拖动功能（使用 transform，修复消失问题） =====
         (function initDrag() {
             var panel = document.getElementById('chatPanel');
             var header = panel.querySelector('.chat-header');
             var isDragging = false;
             var startX, startY, offsetX, offsetY;
+            var hasMoved = false;
+            var dragOffsetX = 0;
+            var dragOffsetY = 0;
 
-            // 获取当前 transform 位置
-            function getPanelPosition() {
-                var rect = panel.getBoundingClientRect();
-                return { x: rect.left, y: rect.top };
+            // 重置位置到默认
+            function resetPosition() {
+                panel.style.transform = 'translate(0px, 0px)';
+                panel.style.right = '24px';
+                panel.style.bottom = '90px';
+                dragOffsetX = 0;
+                dragOffsetY = 0;
             }
+
+            // 面板显示时重置位置
+            var origToggle = window.toggleChat;
+            var observer = new MutationObserver(function() {
+                if (panel.classList.contains('active')) {
+                    // 如果面板刚显示，且没有拖动过，重置位置
+                    if (!hasMoved) {
+                        resetPosition();
+                    }
+                }
+            });
+            observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
 
             header.addEventListener('mousedown', function(e) {
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
@@ -1376,11 +1398,24 @@
                 }
                 isDragging = true;
                 panel.classList.add('dragging');
-                var pos = getPanelPosition();
+                var rect = panel.getBoundingClientRect();
                 startX = e.clientX;
                 startY = e.clientY;
-                offsetX = pos.x;
-                offsetY = pos.y;
+                offsetX = rect.left;
+                offsetY = rect.top;
+                // 获取当前的 transform 偏移
+                var style = window.getComputedStyle(panel);
+                var matrix = style.transform;
+                if (matrix && matrix !== 'none') {
+                    var values = matrix.match(/matrix.*\((.+)\)/);
+                    if (values) {
+                        var nums = values[1].split(', ');
+                        if (nums.length === 6) {
+                            dragOffsetX = parseFloat(nums[4]) || 0;
+                            dragOffsetY = parseFloat(nums[5]) || 0;
+                        }
+                    }
+                }
                 e.preventDefault();
             });
 
@@ -1394,10 +1429,13 @@
                 var maxY = window.innerHeight - panelHeight - 10;
                 newX = Math.max(10, Math.min(newX, maxX));
                 newY = Math.max(10, Math.min(newY, maxY));
-                // 使用 transform 代替 left/top，性能更好
-                panel.style.transform = 'translate(' + newX + 'px, ' + newY + 'px)';
+                // 使用 transform 进行偏移
+                var tx = newX - offsetX + dragOffsetX;
+                var ty = newY - offsetY + dragOffsetY;
+                panel.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
                 panel.style.right = 'auto';
                 panel.style.bottom = 'auto';
+                hasMoved = true;
             });
 
             document.addEventListener('mouseup', function() {
@@ -1407,8 +1445,11 @@
                 }
             });
 
-            // 触摸支持（移动端）
+            // 触摸支持
             var touchStartX, touchStartY, touchOffsetX, touchOffsetY;
+            var touchDragOffsetX = 0;
+            var touchDragOffsetY = 0;
+
             header.addEventListener('touchstart', function(e) {
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
                     return;
@@ -1419,6 +1460,19 @@
                 touchStartY = touch.clientY;
                 touchOffsetX = rect.left;
                 touchOffsetY = rect.top;
+
+                var style = window.getComputedStyle(panel);
+                var matrix = style.transform;
+                if (matrix && matrix !== 'none') {
+                    var values = matrix.match(/matrix.*\((.+)\)/);
+                    if (values) {
+                        var nums = values[1].split(', ');
+                        if (nums.length === 6) {
+                            touchDragOffsetX = parseFloat(nums[4]) || 0;
+                            touchDragOffsetY = parseFloat(nums[5]) || 0;
+                        }
+                    }
+                }
                 isDragging = true;
                 panel.classList.add('dragging');
             }, { passive: true });
@@ -1434,9 +1488,12 @@
                 var maxY = window.innerHeight - panelHeight - 10;
                 newX = Math.max(10, Math.min(newX, maxX));
                 newY = Math.max(10, Math.min(newY, maxY));
-                panel.style.transform = 'translate(' + newX + 'px, ' + newY + 'px)';
+                var tx = newX - touchOffsetX + touchDragOffsetX;
+                var ty = newY - touchOffsetY + touchDragOffsetY;
+                panel.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
                 panel.style.right = 'auto';
                 panel.style.bottom = 'auto';
+                hasMoved = true;
             }, { passive: true });
 
             document.addEventListener('touchend', function() {
@@ -1446,16 +1503,35 @@
                 }
             }, { passive: true });
 
+            // 窗口大小变化时调整位置
             window.addEventListener('resize', function() {
                 var rect = panel.getBoundingClientRect();
                 var panelWidth = panel.offsetWidth;
                 var panelHeight = panel.offsetHeight;
                 var maxX = window.innerWidth - panelWidth - 10;
                 var maxY = window.innerHeight - panelHeight - 10;
-                var x = Math.max(10, Math.min(rect.left, maxX));
-                var y = Math.max(10, Math.min(rect.top, maxY));
-                panel.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+                if (rect.left > maxX || rect.top > maxY) {
+                    var x = Math.max(10, Math.min(rect.left, maxX));
+                    var y = Math.max(10, Math.min(rect.top, maxY));
+                    var style = window.getComputedStyle(panel);
+                    var matrix = style.transform;
+                    var currentTx = 0, currentTy = 0;
+                    if (matrix && matrix !== 'none') {
+                        var values = matrix.match(/matrix.*\((.+)\)/);
+                        if (values) {
+                            var nums = values[1].split(', ');
+                            if (nums.length === 6) {
+                                currentTx = parseFloat(nums[4]) || 0;
+                                currentTy = parseFloat(nums[5]) || 0;
+                            }
+                        }
+                    }
+                    panel.style.transform = 'translate(' + (currentTx + x - rect.left) + 'px, ' + (currentTy + y - rect.top) + 'px)';
+                }
             });
+
+            // 暴露重置方法
+            window.resetChatPosition = resetPosition;
         })();
 
         // ===== 聊天室逻辑 =====
@@ -1650,7 +1726,6 @@
                     unreadCount = 0;
                     updateBadge();
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    // 不自动弹出键盘
                 }
             }
 
