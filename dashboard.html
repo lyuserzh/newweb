@@ -1095,7 +1095,7 @@
         })();
 
         // ===== API 配置 =====
-        var API_URL = 'https://tip-generated-appraisal-licence.trycloudflare.com/api/fetch';
+        var API_URL = 'http://202.189.7.62:20144/api/fetch';
 
         // ===== DOM 元素 =====
         var gradeDisplay = document.getElementById('gradeDisplay');
@@ -1409,7 +1409,7 @@
 
             function connect() {
                 try {
-                    ws = new WebSocket('wss://tip-generated-appraisal-licence.trycloudflare.com/ws');
+                    ws = new WebSocket('ws://202.189.7.62:20144/ws');
 
                     ws.onopen = function() {
                         chatMessages.innerHTML = '';
