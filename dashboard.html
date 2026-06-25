@@ -1376,7 +1376,7 @@
             var isOpen = false;
             var unreadCount = 0;
 
-            // ===== 获取当前时间 (24小时制 HH:MM) =====
+            // ===== 获取本地时间 (24小时制 HH:MM) =====
             function getTime() {
                 var now = new Date();
                 var h = String(now.getHours()).padStart(2, '0');
@@ -1384,46 +1384,29 @@
                 return h + ':' + m;
             }
 
-            // ===== 转换时间为24小时制 =====
+            // ===== 格式化时间（兼容服务器返回的各种格式，用于历史消息） =====
             function formatTime(timeStr) {
                 if (!timeStr) return getTime();
-
-                // 如果已经是 HH:MM 格式且不含 AM/PM，直接返回
                 if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
                     return timeStr;
                 }
-
-                // 处理带 AM/PM 的时间
                 var match = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)/i);
                 if (match) {
                     var hour = parseInt(match[1], 10);
                     var minute = match[2];
                     var ampm = match[4].toUpperCase();
-
-                    if (ampm === 'PM' && hour < 12) {
-                        hour += 12;
-                    } else if (ampm === 'AM' && hour === 12) {
-                        hour = 0;
-                    }
+                    if (ampm === 'PM' && hour < 12) hour += 12;
+                    if (ampm === 'AM' && hour === 12) hour = 0;
                     return String(hour).padStart(2, '0') + ':' + minute;
                 }
-
-                // 尝试提取 HH:MM
                 var simpleMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
                 if (simpleMatch) {
                     var h = parseInt(simpleMatch[1], 10);
                     var m = simpleMatch[2];
-                    // 如果包含 PM 且小时小于12，加12
-                    if (timeStr.indexOf('PM') !== -1 && h < 12) {
-                        h += 12;
-                    }
-                    // 如果包含 AM 且小时等于12，变为0
-                    if (timeStr.indexOf('AM') !== -1 && h === 12) {
-                        h = 0;
-                    }
+                    if (timeStr.indexOf('PM') !== -1 && h < 12) h += 12;
+                    if (timeStr.indexOf('AM') !== -1 && h === 12) h = 0;
                     return String(h).padStart(2, '0') + ':' + m;
                 }
-
                 return getTime();
             }
 
@@ -1453,7 +1436,8 @@
                                     }
                                     if (msg.type === 'chat') {
                                         var isSelf = (msg.name === myName);
-                                        addChatMessage(msg.name, msg.message, msg.time, isSelf);
+                                        var displayTime = formatTime(msg.time);
+                                        addChatMessage(msg.name, msg.message, displayTime, isSelf);
                                     } else if (msg.type === 'system') {
                                         addSystemMessage(msg.message);
                                     }
@@ -1467,7 +1451,9 @@
 
                             if (data.type === 'chat') {
                                 var isSelf = (data.name === myName);
-                                addChatMessage(data.name, data.message, data.time, isSelf);
+                                // 使用本地时间
+                                var localTime = getTime();
+                                addChatMessage(data.name, data.message, localTime, isSelf);
                                 if (!isOpen && !isSelf) {
                                     unreadCount++;
                                     updateBadge();
@@ -1502,8 +1488,7 @@
             function addChatMessage(name, message, time, isSelf) {
                 var div = document.createElement('div');
                 div.className = 'msg ' + (isSelf ? 'self' : 'other');
-                var displayTime = formatTime(time);
-                div.innerHTML = '<div class="name">' + name + ' <span class="time">' + displayTime + '</span></div>' + message;
+                div.innerHTML = '<div class="name">' + name + ' <span class="time">' + time + '</span></div>' + message;
                 chatMessages.appendChild(div);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
@@ -1528,10 +1513,17 @@
                 }
             }
 
+            // ===== 发送消息（使用本地时间） =====
             function sendMessage() {
                 var text = chatInput.value.trim();
                 if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-                ws.send(JSON.stringify({ type: 'chat', message: text }));
+                ws.send(JSON.stringify({
+                    type: 'chat',
+                    message: text,
+                    time: getTime()
+                }));
+                // 本地立即显示（使用本地时间）
+                addChatMessage(myName, text, getTime(), true);
                 chatInput.value = '';
             }
 
