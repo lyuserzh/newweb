@@ -5,23 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
     <title>选择年级</title>
     <style>
-        /* ===== 取消点击蓝色选中框 ===== */
         * {
             -webkit-tap-highlight-color: transparent;
             outline: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         button:focus,
         .grade-btn:focus {
             outline: none !important;
             box-shadow: none !important;
-        }
-
-        /* ===== 基础样式 ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -155,8 +150,6 @@
 
 <script>
     (function() {
-
-        // 随机背景
         (function setRandomBackground() {
             var bgCount = 6;
             var randomNum = Math.floor(Math.random() * bgCount) + 1;
@@ -169,10 +162,8 @@
             btn.addEventListener('click', function() {
                 var grade = this.dataset.grade;
                 var name = this.dataset.name;
-
                 localStorage.setItem('selectedGrade', grade);
                 localStorage.setItem('selectedGradeName', name);
-
                 window.location.href = 'dashboard.html';
             });
         });
@@ -181,7 +172,6 @@
         if (savedGrade) {
             window.location.href = 'dashboard.html';
         }
-
     })();
 </script>
 
