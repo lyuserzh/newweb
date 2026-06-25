@@ -684,9 +684,10 @@
             animation: slideUp 0.3s ease;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none;
-            /* 重置 transform 到默认位置 */
-            transform: translate(0, 0);
+        }
+
+        .chat-panel.active {
+            display: flex;
         }
 
         .chat-panel.dragging {
@@ -696,18 +697,9 @@
             animation: none !important;
         }
 
-        .chat-panel.active {
-            display: flex;
-        }
-
         @keyframes slideUp {
             from { transform: translateY(20px) scale(0.95); opacity: 0; }
             to { transform: translateY(0) scale(1); opacity: 1; }
-        }
-
-        /* 当面板处于拖动状态时，禁用动画 */
-        .chat-panel.dragging {
-            animation: none !important;
         }
 
         .chat-header {
@@ -721,7 +713,6 @@
             flex-wrap: wrap;
             gap: 6px;
             cursor: grab;
-            touch-action: none;
         }
 
         .chat-header:active {
@@ -1361,36 +1352,17 @@
             if (e.key === 'Enter') fetchHomework();
         });
 
-        // ===== 聊天室拖动功能（使用 transform，修复消失问题） =====
+        // ===== 聊天室拖动功能（使用 left/top，稳定可靠） =====
         (function initDrag() {
             var panel = document.getElementById('chatPanel');
             var header = panel.querySelector('.chat-header');
             var isDragging = false;
-            var startX, startY, offsetX, offsetY;
-            var hasMoved = false;
-            var dragOffsetX = 0;
-            var dragOffsetY = 0;
+            var startX, startY, origLeft, origTop, origRight, origBottom;
 
-            // 重置位置到默认
-            function resetPosition() {
-                panel.style.transform = 'translate(0px, 0px)';
-                panel.style.right = '24px';
-                panel.style.bottom = '90px';
-                dragOffsetX = 0;
-                dragOffsetY = 0;
+            function getPanelRect() {
+                var rect = panel.getBoundingClientRect();
+                return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
             }
-
-            // 面板显示时重置位置
-            var origToggle = window.toggleChat;
-            var observer = new MutationObserver(function() {
-                if (panel.classList.contains('active')) {
-                    // 如果面板刚显示，且没有拖动过，重置位置
-                    if (!hasMoved) {
-                        resetPosition();
-                    }
-                }
-            });
-            observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
 
             header.addEventListener('mousedown', function(e) {
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
@@ -1401,41 +1373,43 @@
                 var rect = panel.getBoundingClientRect();
                 startX = e.clientX;
                 startY = e.clientY;
-                offsetX = rect.left;
-                offsetY = rect.top;
-                // 获取当前的 transform 偏移
+                // 获取当前 left/top 值
                 var style = window.getComputedStyle(panel);
-                var matrix = style.transform;
-                if (matrix && matrix !== 'none') {
-                    var values = matrix.match(/matrix.*\((.+)\)/);
-                    if (values) {
-                        var nums = values[1].split(', ');
-                        if (nums.length === 6) {
-                            dragOffsetX = parseFloat(nums[4]) || 0;
-                            dragOffsetY = parseFloat(nums[5]) || 0;
-                        }
-                    }
+                var left = parseFloat(style.left);
+                var top = parseFloat(style.top);
+                // 如果 left/top 是 auto，使用 getBoundingClientRect
+                if (isNaN(left) || style.left === 'auto') {
+                    left = rect.left;
+                }
+                if (isNaN(top) || style.top === 'auto') {
+                    top = rect.top;
+                }
+                origLeft = left;
+                origTop = top;
+                // 如果使用的是 right/bottom 定位，转换为 left/top
+                if (style.right !== 'auto' || style.bottom !== 'auto') {
+                    origLeft = rect.left;
+                    origTop = rect.top;
+                    panel.style.right = 'auto';
+                    panel.style.bottom = 'auto';
+                    panel.style.left = origLeft + 'px';
+                    panel.style.top = origTop + 'px';
                 }
                 e.preventDefault();
             });
 
             document.addEventListener('mousemove', function(e) {
                 if (!isDragging) return;
-                var newX = offsetX + (e.clientX - startX);
-                var newY = offsetY + (e.clientY - startY);
+                var newLeft = origLeft + (e.clientX - startX);
+                var newTop = origTop + (e.clientY - startY);
                 var panelWidth = panel.offsetWidth;
                 var panelHeight = panel.offsetHeight;
                 var maxX = window.innerWidth - panelWidth - 10;
                 var maxY = window.innerHeight - panelHeight - 10;
-                newX = Math.max(10, Math.min(newX, maxX));
-                newY = Math.max(10, Math.min(newY, maxY));
-                // 使用 transform 进行偏移
-                var tx = newX - offsetX + dragOffsetX;
-                var ty = newY - offsetY + dragOffsetY;
-                panel.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
-                panel.style.right = 'auto';
-                panel.style.bottom = 'auto';
-                hasMoved = true;
+                newLeft = Math.max(10, Math.min(newLeft, maxX));
+                newTop = Math.max(10, Math.min(newTop, maxY));
+                panel.style.left = newLeft + 'px';
+                panel.style.top = newTop + 'px';
             });
 
             document.addEventListener('mouseup', function() {
@@ -1446,9 +1420,7 @@
             });
 
             // 触摸支持
-            var touchStartX, touchStartY, touchOffsetX, touchOffsetY;
-            var touchDragOffsetX = 0;
-            var touchDragOffsetY = 0;
+            var touchStartX, touchStartY, touchOrigLeft, touchOrigTop;
 
             header.addEventListener('touchstart', function(e) {
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
@@ -1458,20 +1430,24 @@
                 var rect = panel.getBoundingClientRect();
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
-                touchOffsetX = rect.left;
-                touchOffsetY = rect.top;
-
                 var style = window.getComputedStyle(panel);
-                var matrix = style.transform;
-                if (matrix && matrix !== 'none') {
-                    var values = matrix.match(/matrix.*\((.+)\)/);
-                    if (values) {
-                        var nums = values[1].split(', ');
-                        if (nums.length === 6) {
-                            touchDragOffsetX = parseFloat(nums[4]) || 0;
-                            touchDragOffsetY = parseFloat(nums[5]) || 0;
-                        }
-                    }
+                var left = parseFloat(style.left);
+                var top = parseFloat(style.top);
+                if (isNaN(left) || style.left === 'auto') {
+                    left = rect.left;
+                }
+                if (isNaN(top) || style.top === 'auto') {
+                    top = rect.top;
+                }
+                touchOrigLeft = left;
+                touchOrigTop = top;
+                if (style.right !== 'auto' || style.bottom !== 'auto') {
+                    touchOrigLeft = rect.left;
+                    touchOrigTop = rect.top;
+                    panel.style.right = 'auto';
+                    panel.style.bottom = 'auto';
+                    panel.style.left = touchOrigLeft + 'px';
+                    panel.style.top = touchOrigTop + 'px';
                 }
                 isDragging = true;
                 panel.classList.add('dragging');
@@ -1480,20 +1456,16 @@
             document.addEventListener('touchmove', function(e) {
                 if (!isDragging) return;
                 var touch = e.touches[0];
-                var newX = touchOffsetX + (touch.clientX - touchStartX);
-                var newY = touchOffsetY + (touch.clientY - touchStartY);
+                var newLeft = touchOrigLeft + (touch.clientX - touchStartX);
+                var newTop = touchOrigTop + (touch.clientY - touchStartY);
                 var panelWidth = panel.offsetWidth;
                 var panelHeight = panel.offsetHeight;
                 var maxX = window.innerWidth - panelWidth - 10;
                 var maxY = window.innerHeight - panelHeight - 10;
-                newX = Math.max(10, Math.min(newX, maxX));
-                newY = Math.max(10, Math.min(newY, maxY));
-                var tx = newX - touchOffsetX + touchDragOffsetX;
-                var ty = newY - touchOffsetY + touchDragOffsetY;
-                panel.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
-                panel.style.right = 'auto';
-                panel.style.bottom = 'auto';
-                hasMoved = true;
+                newLeft = Math.max(10, Math.min(newLeft, maxX));
+                newTop = Math.max(10, Math.min(newTop, maxY));
+                panel.style.left = newLeft + 'px';
+                panel.style.top = newTop + 'px';
             }, { passive: true });
 
             document.addEventListener('touchend', function() {
@@ -1503,35 +1475,26 @@
                 }
             }, { passive: true });
 
-            // 窗口大小变化时调整位置
+            // 窗口大小变化时调整
             window.addEventListener('resize', function() {
                 var rect = panel.getBoundingClientRect();
                 var panelWidth = panel.offsetWidth;
                 var panelHeight = panel.offsetHeight;
                 var maxX = window.innerWidth - panelWidth - 10;
                 var maxY = window.innerHeight - panelHeight - 10;
-                if (rect.left > maxX || rect.top > maxY) {
-                    var x = Math.max(10, Math.min(rect.left, maxX));
-                    var y = Math.max(10, Math.min(rect.top, maxY));
-                    var style = window.getComputedStyle(panel);
-                    var matrix = style.transform;
-                    var currentTx = 0, currentTy = 0;
-                    if (matrix && matrix !== 'none') {
-                        var values = matrix.match(/matrix.*\((.+)\)/);
-                        if (values) {
-                            var nums = values[1].split(', ');
-                            if (nums.length === 6) {
-                                currentTx = parseFloat(nums[4]) || 0;
-                                currentTy = parseFloat(nums[5]) || 0;
-                            }
-                        }
-                    }
-                    panel.style.transform = 'translate(' + (currentTx + x - rect.left) + 'px, ' + (currentTy + y - rect.top) + 'px)';
+                if (rect.left > maxX) {
+                    panel.style.left = maxX + 'px';
+                }
+                if (rect.top > maxY) {
+                    panel.style.top = maxY + 'px';
+                }
+                if (rect.left < 10) {
+                    panel.style.left = '10px';
+                }
+                if (rect.top < 10) {
+                    panel.style.top = '10px';
                 }
             });
-
-            // 暴露重置方法
-            window.resetChatPosition = resetPosition;
         })();
 
         // ===== 聊天室逻辑 =====
