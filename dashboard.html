@@ -1347,7 +1347,6 @@
             var chatBadge = document.getElementById('chatBadge');
             var changeNameBtn = document.getElementById('changeNameBtn');
 
-            // ===== 名字管理 =====
             var nameModal = document.getElementById('nameModal');
             var nameInput = document.getElementById('nameInput');
             var nameConfirm = document.getElementById('nameConfirm');
@@ -1376,7 +1375,6 @@
             var isOpen = false;
             var unreadCount = 0;
 
-            // ===== 获取本地时间 (24小时制 HH:MM) =====
             function getTime() {
                 var now = new Date();
                 var h = String(now.getHours()).padStart(2, '0');
@@ -1384,7 +1382,6 @@
                 return h + ':' + m;
             }
 
-            // ===== 格式化时间（兼容服务器返回的各种格式，用于历史消息） =====
             function formatTime(timeStr) {
                 if (!timeStr) return getTime();
                 if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
@@ -1410,7 +1407,6 @@
                 return getTime();
             }
 
-            // ===== WebSocket 连接 =====
             function connect() {
                 try {
                     ws = new WebSocket('ws://202.189.7.62:20144/ws');
@@ -1451,7 +1447,6 @@
 
                             if (data.type === 'chat') {
                                 var isSelf = (data.name === myName);
-                                // 使用本地时间
                                 var localTime = getTime();
                                 addChatMessage(data.name, data.message, localTime, isSelf);
                                 if (!isOpen && !isSelf) {
@@ -1513,7 +1508,7 @@
                 }
             }
 
-            // ===== 发送消息（使用本地时间） =====
+            // ===== 发送消息（不本地显示，等服务器广播回来） =====
             function sendMessage() {
                 var text = chatInput.value.trim();
                 if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
@@ -1522,8 +1517,6 @@
                     message: text,
                     time: getTime()
                 }));
-                // 本地立即显示（使用本地时间）
-                addChatMessage(myName, text, getTime(), true);
                 chatInput.value = '';
             }
 
