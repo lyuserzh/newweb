@@ -981,6 +981,37 @@
             background: rgba(200, 215, 230, 0.5);
         }
 
+        /* ===== 失败提示按钮 ===== */
+        .fallback-area {
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px;
+        }
+
+        .fallback-btn {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 14px;
+            color: #b8860b;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: inherit;
+            display: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .fallback-btn:hover {
+            background: rgba(255, 193, 7, 0.25);
+            border-color: #ffc107;
+        }
+
+        .fallback-btn.active {
+            display: inline-block;
+        }
+
         @media (max-width: 480px) {
             .chat-panel {
                 bottom: 80px;
@@ -1073,6 +1104,11 @@
         <div class="empty-state">选择日期，点击「获取作业」加载数据</div>
     </div>
 
+    <!-- 失败备用按钮 -->
+    <div class="fallback-area">
+        <button class="fallback-btn" id="fallbackBtn">加载失败？试试这个</button>
+    </div>
+
 </div>
 
 <!-- ===== 聊天室按钮 ===== -->
@@ -1105,6 +1141,16 @@
 <script>
     (function() {
 
+        // ===== 配置 =====
+        var DEFAULT_API_URL = 'http://202.189.7.62:20144/api/fetch';
+        var FALLBACK_API_URL = 'https://behavior-freelance-violin-subsidiary.trycloudflare.com/api/fetch';
+        var DEFAULT_WS_URL = 'ws://202.189.7.62:20144/ws';
+        var FALLBACK_WS_URL = 'wss://behavior-freelance-violin-subsidiary.trycloudflare.com/ws';
+
+        var currentApiUrl = DEFAULT_API_URL;
+        var currentWsUrl = DEFAULT_WS_URL;
+        var isUsingFallback = false;
+
         // ===== 随机背景 =====
         (function setRandomBackground() {
             var bgCount = 6;
@@ -1112,15 +1158,13 @@
             document.body.style.backgroundImage = 'url(bg' + randomNum + '.png)';
         })();
 
-        // ===== API 配置 =====
-        var API_URL = 'http://202.189.7.62:20144/api/fetch';
-
         // ===== DOM 元素 =====
         var gradeDisplay = document.getElementById('gradeDisplay');
         var datePicker = document.getElementById('datePicker');
         var fetchBtn = document.getElementById('fetchBtn');
         var statusMsg = document.getElementById('statusMsg');
         var container = document.getElementById('cardContainer');
+        var fallbackBtn = document.getElementById('fallbackBtn');
 
         // ===== 弹窗元素 =====
         var modal = document.getElementById('gradeModal');
@@ -1259,8 +1303,9 @@
         }
 
         // ===== 获取作业 =====
-        function fetchHomework() {
+        function fetchHomework(apiUrl) {
             var day = datePicker.value;
+            var url = apiUrl || currentApiUrl;
 
             if (!day) {
                 statusMsg.textContent = '请选择日期';
@@ -1272,6 +1317,7 @@
             fetchBtn.textContent = '加载中...';
             statusMsg.textContent = '请求中...';
             statusMsg.className = 'status';
+            fallbackBtn.classList.remove('active');
 
             var payload = {
                 day: day,
@@ -1279,12 +1325,17 @@
                 schoolid: '36985645993'
             };
 
-            fetch(API_URL, {
+            fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
-            .then(function(res) { return res.json(); })
+            .then(function(res) {
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json();
+            })
             .then(function(result) {
                 if (!result.success) {
                     throw new Error(result.error || '请求失败');
@@ -1297,18 +1348,49 @@
                     data = [data];
                 }
                 renderCards(data);
-                statusMsg.textContent = '加载成功 (' + data.length + ' 条)';
+                var mode = isUsingFallback ? ' (备用通道)' : '';
+                statusMsg.textContent = '加载成功 (' + data.length + ' 条)' + mode;
                 statusMsg.className = 'status success';
+                if (isUsingFallback) {
+                    fallbackBtn.classList.remove('active');
+                }
             })
             .catch(function(err) {
-                statusMsg.textContent = '错误: ' + err.message;
+                var errMsg = err.message || '未知错误';
+                statusMsg.textContent = '错误: ' + errMsg;
                 statusMsg.className = 'status error';
+                // 只有 Failed to fetch 错误才显示备用按钮
+                if (errMsg === 'Failed to fetch' || errMsg.indexOf('Failed to fetch') !== -1) {
+                    fallbackBtn.classList.add('active');
+                } else {
+                    fallbackBtn.classList.remove('active');
+                }
                 console.error(err);
             })
             .finally(function() {
                 fetchBtn.disabled = false;
                 fetchBtn.textContent = '获取作业';
             });
+        }
+
+        // ===== 切换到备用通道 =====
+        function switchToFallback() {
+            if (isUsingFallback) return;
+            isUsingFallback = true;
+            currentApiUrl = FALLBACK_API_URL;
+            currentWsUrl = FALLBACK_WS_URL;
+            fallbackBtn.classList.remove('active');
+            statusMsg.textContent = '切换到备用通道...';
+            statusMsg.className = 'status';
+            fetchHomework(currentApiUrl);
+            reconnectChat();
+        }
+
+        // ===== 聊天室重连 =====
+        function reconnectChat() {
+            if (window.reconnectWebSocket) {
+                window.reconnectWebSocket();
+            }
         }
 
         // ===== 切换年级 =====
@@ -1319,7 +1401,11 @@
             localStorage.setItem('selectedGradeName', name);
             updateGradeDisplay();
             modal.classList.remove('active');
-            fetchHomework();
+            isUsingFallback = false;
+            currentApiUrl = DEFAULT_API_URL;
+            currentWsUrl = DEFAULT_WS_URL;
+            fallbackBtn.classList.remove('active');
+            fetchHomework(currentApiUrl);
         }
 
         // ===== 弹窗控制 =====
@@ -1345,24 +1431,26 @@
             });
         });
 
-        // ===== 事件绑定 =====
-        fetchBtn.addEventListener('click', fetchHomework);
+        // ===== 备用按钮事件 =====
+        fallbackBtn.addEventListener('click', switchToFallback);
 
-        datePicker.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') fetchHomework();
+        // ===== 事件绑定 =====
+        fetchBtn.addEventListener('click', function() {
+            fetchHomework(currentApiUrl);
         });
 
-        // ===== 聊天室拖动功能（使用 left/top，稳定可靠） =====
+        datePicker.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                fetchHomework(currentApiUrl);
+            }
+        });
+
+        // ===== 聊天室拖动功能 =====
         (function initDrag() {
             var panel = document.getElementById('chatPanel');
             var header = panel.querySelector('.chat-header');
             var isDragging = false;
-            var startX, startY, origLeft, origTop, origRight, origBottom;
-
-            function getPanelRect() {
-                var rect = panel.getBoundingClientRect();
-                return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
-            }
+            var startX, startY, origLeft, origTop;
 
             header.addEventListener('mousedown', function(e) {
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
@@ -1373,11 +1461,9 @@
                 var rect = panel.getBoundingClientRect();
                 startX = e.clientX;
                 startY = e.clientY;
-                // 获取当前 left/top 值
                 var style = window.getComputedStyle(panel);
                 var left = parseFloat(style.left);
                 var top = parseFloat(style.top);
-                // 如果 left/top 是 auto，使用 getBoundingClientRect
                 if (isNaN(left) || style.left === 'auto') {
                     left = rect.left;
                 }
@@ -1386,7 +1472,6 @@
                 }
                 origLeft = left;
                 origTop = top;
-                // 如果使用的是 right/bottom 定位，转换为 left/top
                 if (style.right !== 'auto' || style.bottom !== 'auto') {
                     origLeft = rect.left;
                     origTop = rect.top;
@@ -1419,9 +1504,7 @@
                 }
             });
 
-            // 触摸支持
             var touchStartX, touchStartY, touchOrigLeft, touchOrigTop;
-
             header.addEventListener('touchstart', function(e) {
                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button')) {
                     return;
@@ -1475,7 +1558,6 @@
                 }
             }, { passive: true });
 
-            // 窗口大小变化时调整
             window.addEventListener('resize', function() {
                 var rect = panel.getBoundingClientRect();
                 var panelWidth = panel.offsetWidth;
@@ -1537,6 +1619,7 @@
 
             var isOpen = false;
             var unreadCount = 0;
+            var isConnecting = false;
 
             function getTime() {
                 var now = new Date();
@@ -1570,11 +1653,22 @@
                 return getTime();
             }
 
+            window.reconnectWebSocket = function() {
+                if (ws) {
+                    try { ws.close(); } catch(e) {}
+                }
+                setTimeout(connect, 500);
+            };
+
             function connect() {
+                if (isConnecting) return;
+                isConnecting = true;
                 try {
-                    ws = new WebSocket('ws://202.189.7.62:20144/ws');
+                    var wsUrl = isUsingFallback ? FALLBACK_WS_URL : DEFAULT_WS_URL;
+                    ws = new WebSocket(wsUrl);
 
                     ws.onopen = function() {
+                        isConnecting = false;
                         chatMessages.innerHTML = '';
                         addSystemMessage('连接中...');
                         ws.send(JSON.stringify({
@@ -1630,15 +1724,18 @@
                     };
 
                     ws.onclose = function() {
+                        isConnecting = false;
                         addSystemMessage('已断开连接，尝试重连...');
                         setTimeout(connect, 3000);
                     };
 
                     ws.onerror = function() {
+                        isConnecting = false;
                         addSystemMessage('连接失败，重试中...');
                     };
 
                 } catch (e) {
+                    isConnecting = false;
                     addSystemMessage('无法连接聊天室');
                 }
             }
@@ -1753,7 +1850,9 @@
         })();
 
         // ===== 自动加载 =====
-        setTimeout(fetchHomework, 200);
+        setTimeout(function() {
+            fetchHomework(currentApiUrl);
+        }, 200);
 
     })();
 </script>
