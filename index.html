@@ -1,179 +1,732 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-    <title>选择年级</title>
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>聊天室</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: rgba(255,255,255,0.08);
+      --text: #e8eef6;
+      --text-dim: #8b9cb3;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --self-bg: #2563eb;
+      --other-bg: #2a3548;
+      --system: #5a6a80;
+      --danger: #ef4444;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
 
-        button:focus,
-        .grade-btn:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #e6edf4;
-            padding: 20px;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.2);
-            z-index: 0;
-        }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59,130,246,0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(99,102,241,0.12), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .selector {
-            position: relative;
-            z-index: 1;
-            background: rgba(255, 255, 255, 0.60);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 24px;
-            padding: 48px 40px 40px;
-            max-width: 420px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.12);
-            text-align: center;
-        }
+    .app {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
 
-        .selector h1 {
-            font-size: 26px;
-            font-weight: 600;
-            color: #1a3349;
-            margin-bottom: 6px;
-        }
+    .header {
+      flex-shrink: 0;
+      padding: 14px 18px;
+      background: rgba(26,35,50,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
 
-        .selector p {
-            font-size: 14px;
-            color: #4a6a8a;
-            margin-bottom: 28px;
-        }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
 
-        .grade-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
 
-        .grade-btn {
-            padding: 18px 12px;
-            border: 1px solid rgba(180, 200, 220, 0.3);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.4);
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a3349;
-            cursor: pointer;
-            transition: all 0.25s;
-            font-family: inherit;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-        }
+    .header h1 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
 
-        .grade-btn:focus {
-            outline: none;
-            box-shadow: none;
-        }
+    .online {
+      font-size: 12px;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.06);
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
 
-        .grade-btn:hover {
-            background: rgba(42, 92, 138, 0.12);
-            border-color: #2a5c8a;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(42, 92, 138, 0.10);
-        }
+    .online .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulse 2s infinite;
+    }
 
-        .grade-btn:active {
-            transform: scale(0.97);
-        }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
 
-        .grade-btn .sub {
-            display: block;
-            font-size: 11px;
-            font-weight: 400;
-            color: #5a7a9a;
-            margin-top: 4px;
-        }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        @media (max-width: 420px) {
-            .selector { padding: 32px 20px 28px; }
-            .selector h1 { font-size: 22px; }
-            .grade-btn { font-size: 16px; padding: 14px 10px; }
-        }
-    </style>
+    .name-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .name-btn:hover {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .messages::-webkit-scrollbar { width: 5px; }
+    .messages::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.12);
+      border-radius: 4px;
+    }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+
+    .msg {
+      max-width: 82%;
+      animation: msgIn 0.22s ease;
+    }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.self { align-self: flex-end; }
+    .msg.other { align-self: flex-start; }
+    .msg.system { align-self: center; max-width: 90%; }
+
+    .msg .meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 3px;
+      padding: 0 4px;
+    }
+
+    .msg.self .meta { justify-content: flex-end; }
+
+    .msg .name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #93c5fd;
+    }
+
+    .msg.self .name { color: #bfdbfe; }
+
+    .msg .time {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .msg .bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 15px;
+      line-height: 1.55;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .msg.other .bubble {
+      background: var(--other-bg);
+      border-bottom-left-radius: 4px;
+      color: var(--text);
+    }
+
+    .msg.self .bubble {
+      background: var(--self-bg);
+      border-bottom-right-radius: 4px;
+      color: #fff;
+    }
+
+    .msg.system .bubble {
+      background: rgba(255,255,255,0.06);
+      color: var(--system);
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .input-area {
+      flex-shrink: 0;
+      padding: 12px 14px 16px;
+      background: rgba(26,35,50,0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .input-wrap {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 4px 4px 4px 16px;
+      display: flex;
+      align-items: flex-end;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrap:focus-within {
+      border-color: rgba(59,130,246,0.5);
+    }
+
+    #chatInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      padding: 8px 0;
+      max-height: 100px;
+      resize: none;
+      line-height: 1.4;
+    }
+
+    #chatInput::placeholder { color: var(--text-dim); }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.15s;
+      flex-shrink: 0;
+      font-family: inherit;
+    }
+
+    .send-btn:hover { background: var(--accent-hover); }
+    .send-btn:active { transform: scale(0.94); }
+    .send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px 22px;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: var(--shadow);
+      animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .modal input:focus {
+      border-color: rgba(59,130,246,0.5);
+    }
+
+    .modal .btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal .btns button {
+      flex: 1;
+      padding: 11px;
+      border-radius: 12px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+
+    .modal .btns .cancel {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-dim);
+    }
+
+    .modal .btns .cancel:hover {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .modal .btns .confirm {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .modal .btns .confirm:hover {
+      background: var(--accent-hover);
+    }
+
+    .status-bar {
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 6px;
+      background: rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .status-bar.show { display: block; }
+    .status-bar.error { color: #f87171; }
+
+    @media (max-width: 480px) {
+      .app { max-width: 100%; }
+      .header { padding: 12px 14px; }
+      .header h1 { font-size: 16px; }
+      .name-btn {
+        max-width: 90px;
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+      .messages { padding: 12px 12px 8px; }
+      .msg { max-width: 88%; }
+      .input-area { padding: 10px 12px 14px; }
+    }
+
+    @media (min-width: 721px) {
+      body { padding: 24px 0; }
+      .app {
+        height: calc(100% - 48px);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">💬</div>
+        <h1>聊天室</h1>
+      </div>
+      <div class="header-actions">
+        <button class="name-btn" id="nameBtn" title="修改昵称">加载中...</button>
+        <div class="online">
+          <span class="dot"></span>
+          <span id="onlineCount">0 人在线</span>
+        </div>
+      </div>
+    </header>
 
-<div class="selector">
-    <h1>选择年级</h1>
-    <p>请选择你要查看的年级</p>
-    <div class="grade-grid">
-        <button class="grade-btn" data-grade="%u521D%u4E00" data-name="初一">
-            初一
-            <span class="sub">七年级</span>
-        </button>
-        <button class="grade-btn" data-grade="%u521D%u4E8C" data-name="初二">
-            初二
-            <span class="sub">八年级</span>
-        </button>
-        <button class="grade-btn" data-grade="%u521D%u4E09" data-name="初三">
-            初三
-            <span class="sub">九年级</span>
-        </button>
-        <button class="grade-btn" data-grade="%u521D%u56DB" data-name="初四">
-            初四
-            <span class="sub">四年级</span>
-        </button>
+    <div class="status-bar" id="statusBar"></div>
+
+    <div class="messages" id="messages">
+      <div class="msg system">
+        <div class="bubble">正在连接...</div>
+      </div>
     </div>
-</div>
 
-<script>
-    (function() {
-        (function setRandomBackground() {
-            var bgCount = 6;
-            var randomNum = Math.floor(Math.random() * bgCount) + 1;
-            document.body.style.backgroundImage = 'url(bg' + randomNum + '.png)';
-        })();
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea id="chatInput" rows="1" placeholder="输入消息..." maxlength="300"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" title="发送">➤</button>
+    </div>
+  </div>
 
-        var gradeBtns = document.querySelectorAll('.grade-btn');
+  <!-- 昵称弹窗 -->
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal">
+      <h2>设置昵称</h2>
+      <p>昵称仅可修改一次，请谨慎填写</p>
+      <input type="text" id="nameInput" placeholder="输入你的昵称" maxlength="20" autocomplete="off">
+      <div class="btns">
+        <button class="cancel" id="nameCancel">取消</button>
+        <button class="confirm" id="nameConfirm">确认</button>
+      </div>
+    </div>
+  </div>
 
-        gradeBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var grade = this.dataset.grade;
-                var name = this.dataset.name;
-                localStorage.setItem('selectedGrade', grade);
-                localStorage.setItem('selectedGradeName', name);
-                window.location.href = 'dashboard.html';
-            });
-        });
+  <script>
+    (function () {
+      // ============================================================
+      //  ★★★  只需要改这一行  ★★★
+      //  把下面的地址换成你后端的真实地址
+      // ============================================================
+      //
+      //  Cloudflare Tunnel 示例：
+      //  var WS_URL = 'wss://behavior-freelance-violin-subsidiary.trycloudflare.com/ws';
+      //
+      //  公网 IP + 端口 示例：
+      //  var WS_URL = 'ws://202.189.7.62:20144/ws';
+      //
+      //  自己的域名（HTTPS）示例：
+      //  var WS_URL = 'wss://chat.example.com/ws';
+      //
+      // ============================================================
 
-        var savedGrade = localStorage.getItem('selectedGrade');
-        if (savedGrade) {
-            window.location.href = 'dashboard.html';
+      var WS_URL = 'wss://execute-thought-forums-homeland.trycloudflare.com/ws';
+
+      // ============================================================
+
+      var messagesEl = document.getElementById('messages');
+      var chatInput = document.getElementById('chatInput');
+      var sendBtn = document.getElementById('sendBtn');
+      var onlineCountEl = document.getElementById('onlineCount');
+      var nameBtn = document.getElementById('nameBtn');
+      var statusBar = document.getElementById('statusBar');
+      var nameModal = document.getElementById('nameModal');
+      var nameInput = document.getElementById('nameInput');
+      var nameConfirm = document.getElementById('nameConfirm');
+      var nameCancel = document.getElementById('nameCancel');
+
+      var ws = null;
+      var isConnecting = false;
+      var myName = localStorage.getItem('chatUserName') || '';
+      var hasChangedName = localStorage.getItem('chatNameChanged') === 'true';
+
+      function getDefaultName() {
+        return '访客' + (Math.floor(Math.random() * 900) + 100);
+      }
+
+      if (!myName) {
+        myName = getDefaultName();
+        localStorage.setItem('chatUserName', myName);
+      }
+
+      function updateNameBtn() {
+        nameBtn.textContent = myName;
+        if (hasChangedName) {
+          nameBtn.title = '昵称已锁定，不可再改';
+          nameBtn.style.opacity = '0.7';
         }
-    })();
-</script>
+      }
+      updateNameBtn();
 
+      function getTime() {
+        var now = new Date();
+        return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      }
+
+      function formatTime(t) {
+        if (!t) return getTime();
+        if (/^\d{1,2}:\d{2}$/.test(t)) return t;
+        var m = t.match(/(\d{1,2}):(\d{2})/);
+        if (m) return String(parseInt(m[1], 10)).padStart(2, '0') + ':' + m[2];
+        return getTime();
+      }
+
+      function showStatus(text, isError) {
+        statusBar.textContent = text;
+        statusBar.className = 'status-bar show' + (isError ? ' error' : '');
+      }
+
+      function hideStatus() {
+        statusBar.className = 'status-bar';
+      }
+
+      function addMessage(name, text, time, isSelf) {
+        var div = document.createElement('div');
+        div.className = 'msg ' + (isSelf ? 'self' : 'other');
+        div.innerHTML =
+          '<div class="meta">' +
+            '<span class="name">' + escapeHtml(name) + '</span>' +
+            '<span class="time">' + escapeHtml(time) + '</span>' +
+          '</div>' +
+          '<div class="bubble">' + escapeHtml(text) + '</div>';
+        messagesEl.appendChild(div);
+        scrollToBottom();
+      }
+
+      function addSystem(text) {
+        var div = document.createElement('div');
+        div.className = 'msg system';
+        div.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
+        messagesEl.appendChild(div);
+        scrollToBottom();
+      }
+
+      function escapeHtml(str) {
+        var d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+      }
+
+      function scrollToBottom() {
+        requestAnimationFrame(function () {
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
+      }
+
+      function connect() {
+        if (isConnecting) return;
+        isConnecting = true;
+        showStatus('正在连接...');
+
+        try {
+          ws = new WebSocket(WS_URL);
+
+          ws.onopen = function () {
+            isConnecting = false;
+            hideStatus();
+            messagesEl.innerHTML = '';
+            addSystem('已连接');
+            ws.send(JSON.stringify({ type: 'setName', name: myName }));
+          };
+
+          ws.onmessage = function (ev) {
+            try {
+              var data = JSON.parse(ev.data);
+
+              if (data.type === 'history') {
+                messagesEl.innerHTML = '';
+                if (!data.messages || data.messages.length === 0) {
+                  addSystem('暂无历史消息，开始聊天吧');
+                } else {
+                  data.messages.forEach(function (msg) {
+                    if (msg.type === 'chat') {
+                      addMessage(msg.name, msg.message, formatTime(msg.time), msg.name === myName);
+                    }
+                  });
+                }
+                return;
+              }
+
+              if (data.type === 'chat') {
+                var isSelf = data.name === myName;
+                addMessage(data.name, data.message, getTime(), isSelf);
+              } else if (data.type === 'online') {
+                onlineCountEl.textContent = data.count + ' 人在线';
+              } else if (data.type === 'system') {
+                addSystem(data.message);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          };
+
+          ws.onclose = function () {
+            isConnecting = false;
+            showStatus('连接已断开，3 秒后重连...', true);
+            setTimeout(connect, 3000);
+          };
+
+          ws.onerror = function () {
+            isConnecting = false;
+            showStatus('连接失败', true);
+          };
+        } catch (e) {
+          isConnecting = false;
+          showStatus('无法创建连接', true);
+        }
+      }
+
+      function sendMessage() {
+        var text = chatInput.value.trim();
+        if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(JSON.stringify({
+          type: 'chat',
+          message: text,
+          time: getTime()
+        }));
+        chatInput.value = '';
+        autoResize();
+      }
+
+      function autoResize() {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+      }
+
+      chatInput.addEventListener('input', autoResize);
+
+      sendBtn.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      nameBtn.addEventListener('click', function () {
+        if (hasChangedName) {
+          alert('你已修改过昵称，不能再改');
+          return;
+        }
+        nameInput.value = myName;
+        nameModal.classList.add('active');
+        setTimeout(function () { nameInput.focus(); }, 200);
+      });
+
+      nameCancel.addEventListener('click', function () {
+        nameModal.classList.remove('active');
+      });
+
+      nameConfirm.addEventListener('click', function () {
+        var n = nameInput.value.trim();
+        if (!n) {
+          alert('请输入昵称');
+          return;
+        }
+        if (hasChangedName) {
+          alert('你已修改过昵称，不能再改');
+          nameModal.classList.remove('active');
+          return;
+        }
+        myName = n.slice(0, 20);
+        localStorage.setItem('chatUserName', myName);
+        localStorage.setItem('chatNameChanged', 'true');
+        hasChangedName = true;
+        updateNameBtn();
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'setName', name: myName }));
+        }
+        nameModal.classList.remove('active');
+      });
+
+      nameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') nameConfirm.click();
+      });
+
+      nameModal.addEventListener('click', function (e) {
+        if (e.target === nameModal) nameModal.classList.remove('active');
+      });
+
+      connect();
+    })();
+  </script>
 </body>
 </html>
